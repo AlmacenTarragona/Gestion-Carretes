@@ -1,4 +1,4 @@
-const API_URL = "1Ilfua43mzjXtjIDcnOfQ5jF18dJemXwljovFnt1i6eQ"; // <-- pega aquí tu URL de Apps Script
+const API_URL = "TU_URL_WEBAPP_AQUI"; // <-- pega aquí tu URL de Apps Script
 
 let carretes = [];
 
