@@ -1,4 +1,4 @@
-const API_URL = "https://script.google.com/macros/s/AKfycbxOyDJHR13UmaMbZqnsTQTUVQP_tRO90TB8Rg8GXJqkJHziyqoKjnKSbu7hcwmDNYd8gA/exec";
+const API_URL = "https://script.google.com/macros/s/AKfycbyvAqgtosXknsFYJsAyHs0MRcBYdLkJRZI8cb86qwKuNsg55CRXqzWoakNgSvCCN-Jh5w/exec";
 // v2 - forzar actualización
 
 
