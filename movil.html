@@ -1,0 +1,190 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>Carretes - Móvil</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- QR Reader (opcional si luego quieres escanear) -->
+  <script src="https://unpkg.com/html5-qrcode"></script>
+</head>
+
+<body class="bg-gray-100 p-4">
+
+  <h1 class="text-2xl font-bold mb-4">Gestión de Carretes (Móvil)</h1>
+
+  <!-- Entrada manual -->
+  <div class="mb-4">
+    <label class="block mb-1">Carrete (ID o escaneado)</label>
+    <input id="carreteInput" class="w-full p-2 border rounded" placeholder="Ej: 08S20307">
+  </div>
+
+  <!-- Botón buscar -->
+  <button onclick="buscarCarrete()" class="bg-blue-600 text-white px-4 py-2 rounded w-full mb-4">
+    Buscar carrete
+  </button>
+
+  <!-- Información del carrete -->
+  <div id="infoCarrete" class="hidden bg-white p-4 rounded shadow mb-4">
+    <p><strong>Carrete:</strong> <span id="infoId"></span></p>
+    <p><strong>Estado:</strong> <span id="infoEstado"></span></p>
+    <p><strong>P.Interior:</strong> <span id="infoPInt"></span></p>
+    <p><strong>P.Exterior:</strong> <span id="infoPExt"></span></p>
+  </div>
+
+  <!-- Formulario de movimiento -->
+  <div id="formMovimiento" class="hidden bg-white p-4 rounded shadow">
+    <div class="mb-3">
+      <label class="block mb-1">Brigada (ID)</label>
+      <input id="brigadaInput" class="w-full p-2 border rounded">
+    </div>
+
+    <div id="campoPuntaExterior" class="mb-3 hidden">
+      <label class="block mb-1">Punta Exterior con la que entra</label>
+      <input id="puntaExteriorInput" class="w-full p-2 border rounded">
+    </div>
+
+    <button onclick="procesarMovimiento()" class="bg-green-600 text-white px-4 py-2 rounded w-full">
+      Confirmar movimiento
+    </button>
+  </div>
+
+  <div id="mensaje" class="mt-4 text-center text-sm"></div>
+
+  <script>
+    const API_URL = "https://docs.google.com/spreadsheets/d/1Ilfua43mzjXtjIDcnOfQ5jF18dJemXwljovFnt1i6eQ/edit?usp=sharing";  // <-- Pega aquí tu URL de Apps Script
+
+    let carreteActual = null;
+    let registrosCarrete = [];
+
+    function buscarCarrete() {
+      const id = document.getElementById("carreteInput").value.trim();
+      if (!id) return mostrarMensaje("Introduce un ID de carrete.", "red");
+
+      fetch(API_URL + "?action=getCarretes")
+        .then(r => r.json())
+        .then(data => {
+          carreteActual = data.find(c => c.Carrete === id);
+          if (!carreteActual) return mostrarMensaje("Carrete no encontrado.", "red");
+
+          document.getElementById("infoId").textContent = carreteActual.Carrete;
+          document.getElementById("infoEstado").textContent = carreteActual.Estado;
+          document.getElementById("infoPInt").textContent = carreteActual["P.Interior"];
+          document.getElementById("infoPExt").textContent = carreteActual["P.Exterior"];
+          document.getElementById("infoCarrete").classList.remove("hidden");
+
+          return fetch(API_URL + "?action=getRegistros&id=" + encodeURIComponent(id));
+        })
+        .then(r => r.json())
+        .then(regs => {
+          registrosCarrete = regs || [];
+          prepararFormularioMovimiento();
+        })
+        .catch(() => mostrarMensaje("Error al buscar carrete.", "red"));
+    }
+
+    function prepararFormularioMovimiento() {
+      const estado = carreteActual.Estado;
+      const campoPunta = document.getElementById("campoPuntaExterior");
+
+      document.getElementById("formMovimiento").classList.remove("hidden");
+
+      if (estado === "Fuera") {
+        campoPunta.classList.remove("hidden");
+        mostrarMensaje("El carrete está FUERA. Vamos a darle entrada.", "blue");
+      } else if (estado === "En almacén") {
+        campoPunta.classList.add("hidden");
+        mostrarMensaje("El carrete está EN ALMACÉN. Vamos a darle salida.", "blue");
+      } else {
+        campoPunta.classList.add("hidden");
+        mostrarMensaje("Estado no operativo.", "orange");
+      }
+    }
+
+    function procesarMovimiento() {
+      const brigada = document.getElementById("brigadaInput").value.trim();
+      const estado = carreteActual.Estado;
+
+      if (!brigada) return mostrarMensaje("Introduce el ID de Brigada.", "red");
+
+      if (estado === "Fuera") {
+        const puntaNueva = document.getElementById("puntaExteriorInput").value.trim();
+        if (!puntaNueva) return mostrarMensaje("Introduce la Punta Exterior.", "red");
+
+        const salidas = registrosCarrete.filter(r => r.Movimiento === "Salida");
+        const ultimaSalida = salidas[salidas.length - 1];
+
+        let consumo = null;
+        if (ultimaSalida) {
+          const puntaSalida = Number(ultimaSalida["P.Externa"]);
+          consumo = Math.abs(puntaSalida - Number(puntaNueva));
+        }
+
+        const registroEntrada = {
+          action: "addRegistro",
+          Carrete: carreteActual.Carrete,
+          "Registro Nombre": "Entrada móvil",
+          "P.Interna": carreteActual["P.Interior"],
+          "P.Ext Ant": carreteActual["P.Exterior"],
+          "P.Externa": puntaNueva,
+          Consumo: consumo ?? "",
+          Ubicación: carreteActual.Ubicacion || "",
+          "F.Movimiento": new Date().toISOString(),
+          Brigada: brigada,
+          Movimiento: "Entrada",
+          Observaciones: ""
+        };
+
+        fetch(API_URL, { method: "POST", body: JSON.stringify(registroEntrada) })
+          .then(() => fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "updateCarrete",
+              Carrete: carreteActual.Carrete,
+              Estado: "En almacén",
+              "P.Exterior": puntaNueva
+            })
+          }))
+          .then(() => mostrarMensaje("Entrada registrada. Consumo: " + consumo, "green"));
+
+      } else if (estado === "En almacén") {
+        const registroSalida = {
+          action: "addRegistro",
+          Carrete: carreteActual.Carrete,
+          "Registro Nombre": "Salida móvil",
+          "P.Interna": carreteActual["P.Interior"],
+          "P.Ext Ant": carreteActual["P.Exterior"],
+          "P.Externa": carreteActual["P.Exterior"],
+          Consumo: "",
+          Ubicación: carreteActual.Ubicacion || "",
+          "F.Movimiento": new Date().toISOString(),
+          Brigada: brigada,
+          Movimiento: "Salida",
+          Observaciones: ""
+        };
+
+        fetch(API_URL, { method: "POST", body: JSON.stringify(registroSalida) })
+          .then(() => fetch(API_URL, {
+            method: "POST",
+            body: JSON.stringify({
+              action: "updateCarrete",
+              Carrete: carreteActual.Carrete,
+              Estado: "Fuera"
+            })
+          }))
+          .then(() => mostrarMensaje("Salida registrada. Estado cambiado a FUERA.", "green"));
+      }
+    }
+
+    function mostrarMensaje(texto, color) {
+      const el = document.getElementById("mensaje");
+      el.textContent = texto;
+      el.className = "mt-4 text-center text-sm text-" + color + "-600";
+    }
+  </script>
+
+</body>
+</html>
