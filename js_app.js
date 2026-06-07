@@ -1,4 +1,4 @@
-const API_URL = "TU_URL_WEBAPP_AQUI"; // <-- pega aquí tu URL de Apps Script
+const API_URL = "https://script.google.com/macros/s/AKfycbyujMl4jjnrWeUlHFCxkX4tIHF9p0FXshOeFIfFRfmo7i3dZYoCepfFrZZeUe6CthLVGQ/exec"; // <-- pega aquí tu URL de Apps Script
 
 let carretes = [];
 
