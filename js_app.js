@@ -1,4 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbyBxAoXgTIrLgfTdupgkJQLt792npdkaPJ0fYCRb65yuSrP-m8aw5YTU7AbnlcR5yvNTw/exec";
+
 let carretes = [];
 
 // Cargar carretes al iniciar
