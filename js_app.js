@@ -1,4 +1,5 @@
 const API_URL = "https://script.google.com/macros/s/AKfycbzoun9ZpqtJmLPukLtK2Z4OnlUsZqrc5narPwv4yxq-C-309nqjihjxiwKtBQoo5-Hd-w/exec";
+// v2 - forzar actualización
 
 
 let carretes = [];
