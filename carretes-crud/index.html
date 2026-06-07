@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8">
+  <title>CRUD Carretes</title>
+
+  <!-- Tailwind CSS -->
+  <script src="https://cdn.tailwindcss.com"></script>
+
+  <!-- QRCodeJS -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+
+</head>
+<body class="bg-gray-100 p-6">
+
+  <h1 class="text-3xl font-bold mb-6">Gestión de Carretes</h1>
+
+  <!-- Filtros -->
+  <div class="flex gap-4 mb-4">
+    <select id="filtroEstado" class="p-2 border rounded">
+      <option value="">Estado</option>
+      <option value="En almacén">En almacén</option>
+      <option value="Fuera">Fuera</option>
+      <option value="Vacío/No disponible">Vacío/No disponible</option>
+    </select>
+
+    <input id="filtroCodigo" class="p-2 border rounded" placeholder="Código de producto">
+
+    <input id="filtroProveedor" class="p-2 border rounded" placeholder="Proveedor">
+  </div>
+
+  <!-- Tabla -->
+  <table class="min-w-full bg-white shadow-md rounded">
+    <thead>
+      <tr class="bg-gray-200 text-left">
+        <th class="p-2">Carrete</th>
+        <th class="p-2">Código</th>
+        <th class="p-2">Descripción</th>
+        <th class="p-2">Metros</th>
+        <th class="p-2">P.Interior</th>
+        <th class="p-2">P.Exterior</th>
+        <th class="p-2">Estado</th>
+        <th class="p-2">Proveedor</th>
+        <th class="p-2">Acciones</th>
+      </tr>
+    </thead>
+    <tbody id="tablaCarretes"></tbody>
+  </table>
+
+  <!-- Modal edición -->
+  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-lg w-96">
+      <h2 class="text-xl font-bold mb-4">Editar Carrete</h2>
+
+      <input id="editCarrete" class="p-2 border rounded w-full mb-2" disabled>
+
+      <label>Estado</label>
+      <select id="editEstado" class="p-2 border rounded w-full mb-2">
+        <option>En almacén</option>
+        <option>Fuera</option>
+        <option>Vacío/No disponible</option>
+      </select>
+
+      <label>P.Exterior</label>
+      <input id="editPExterior" class="p-2 border rounded w-full mb-4">
+
+      <div class="flex justify-between">
+        <button onclick="guardarCambios()" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
+        <button onclick="cerrarModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
+      </div>
+    </div>
+  </div>
+
+  <!-- QR Modal -->
+  <div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
+    <div class="bg-white p-6 rounded shadow-lg">
+      <h2 class="text-xl font-bold mb-4">QR del Carrete</h2>
+      <div id="qrContainer" class="mb-4"></div>
+      <button onclick="cerrarQR()" class="bg-gray-400 text-white px-4 py-2 rounded">Cerrar</button>
+    </div>
+  </div>
+
+  <script src="js/app.js"></script>
+</body>
+</html>
