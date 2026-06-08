@@ -2,86 +2,172 @@
 <html lang="es">
 
 <head>
-
 <meta charset="UTF-8">
-
-<meta name="viewport"
-      content="width=device-width, initial-scale=1">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Control de Carretes</title>
 
 <style>
 
 *{
+    margin:0;
+    padding:0;
     box-sizing:border-box;
 }
 
 body{
-    font-family:Segoe UI;
-    margin:0;
-    background:#f4f6f8;
+    font-family:'Segoe UI',sans-serif;
+    background:#f1f5f9;
+    color:#1e293b;
 }
 
 header{
     background:#0f172a;
     color:white;
-    padding:20px;
+    padding:20px 30px;
+    box-shadow:0 2px 10px rgba(0,0,0,.2);
 }
 
-.container{
+header h1{
+    font-size:28px;
+}
+
+/* DASHBOARD */
+
+.dashboard{
+    position:sticky;
+    top:0;
+    z-index:1000;
+    background:#f1f5f9;
     padding:20px;
 }
 
 .cards{
     display:grid;
-    grid-template-columns:
-        repeat(auto-fit,minmax(180px,1fr));
-    gap:15px;
-    margin-bottom:20px;
+    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
+    gap:20px;
 }
 
 .card{
-    background:white;
-    border-radius:10px;
+    border-radius:16px;
     padding:20px;
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
+    color:white;
+    box-shadow:0 8px 20px rgba(0,0,0,.15);
+    transition:.3s;
+}
+
+.card:hover{
+    transform:translateY(-3px);
+}
+
+.card h3{
+    font-size:14px;
+    text-transform:uppercase;
+    opacity:.85;
 }
 
 .card h2{
-    margin:0;
-    font-size:32px;
+    margin-top:10px;
+    font-size:42px;
 }
+
+.card-total{
+    background:linear-gradient(135deg,#0f172a,#334155);
+}
+
+.card-almacen{
+    background:linear-gradient(135deg,#16a34a,#22c55e);
+}
+
+.card-fuera{
+    background:linear-gradient(135deg,#dc2626,#ef4444);
+}
+
+.card-vacia{
+    background:linear-gradient(135deg,#4b5563,#6b7280);
+}
+
+/* FILTROS */
 
 .filtros{
+    position:sticky;
+    top:160px;
+    z-index:999;
+
+    margin:20px;
+    padding:15px;
+
+    background:white;
+
+    border-radius:12px;
+
     display:flex;
-    gap:10px;
     flex-wrap:wrap;
-    margin-bottom:20px;
+    gap:10px;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
 }
 
-input,select{
-    padding:10px;
+.filtros input,
+.filtros select{
+
+    padding:12px;
+
+    border:1px solid #cbd5e1;
+
+    border-radius:8px;
+
+    font-size:14px;
+}
+
+/* TABLA */
+
+.tabla-container{
+
+    margin:20px;
+
+    background:white;
+
+    border-radius:12px;
+
+    overflow:auto;
+
+    max-height:70vh;
+
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
 }
 
 table{
     width:100%;
     border-collapse:collapse;
-    background:white;
 }
 
-th{
-    background:#1e293b;
+thead th{
+
+    position:sticky;
+    top:0;
+
+    background:#0f172a;
+
     color:white;
-}
 
-th,td{
-    padding:10px;
+    padding:14px;
+
     text-align:left;
+
+    z-index:10;
 }
 
-tr:nth-child(even){
+tbody td{
+    padding:12px;
+    border-bottom:1px solid #e2e8f0;
+}
+
+tbody tr:hover{
     background:#f8fafc;
 }
+
+/* ESTADOS */
 
 .estado-almacen{
     background:#dcfce7 !important;
@@ -95,11 +181,41 @@ tr:nth-child(even){
     background:#e5e7eb !important;
 }
 
-button{
+.badge{
+    padding:6px 12px;
+    border-radius:20px;
+    font-size:13px;
+    font-weight:600;
+}
+
+.badge-almacen{
+    background:#16a34a;
+    color:white;
+}
+
+.badge-fuera{
+    background:#dc2626;
+    color:white;
+}
+
+.badge-vacia{
+    background:#6b7280;
+    color:white;
+}
+
+/* BOTONES */
+
+.btn{
+
     border:none;
-    padding:8px 12px;
-    border-radius:6px;
+
+    padding:8px 14px;
+
+    border-radius:8px;
+
     cursor:pointer;
+
+    font-weight:600;
 }
 
 .btn-salida{
@@ -112,68 +228,90 @@ button{
     color:white;
 }
 
-</style>
+.btn:hover{
+    opacity:.9;
+}
 
+/* RESPONSIVE */
+
+@media(max-width:768px){
+
+    .card h2{
+        font-size:32px;
+    }
+
+    .filtros{
+        top:250px;
+    }
+
+}
+
+</style>
 </head>
 
 <body>
 
 <header>
-<h1>Control de Carretes</h1>
+    <h1>📦 Control de Carretes</h1>
 </header>
 
-<div class="container">
+<div class="dashboard">
 
-<div class="cards">
+    <div class="cards">
 
-<div class="card">
-<h3>Total</h3>
-<h2 id="total">0</h2>
-</div>
+        <div class="card card-total">
+            <h3>Total</h3>
+            <h2 id="total">0</h2>
+        </div>
 
-<div class="card">
-<h3>En Almacén</h3>
-<h2 id="almacen">0</h2>
-</div>
+        <div class="card card-almacen">
+            <h3>En Almacén</h3>
+            <h2 id="almacen">0</h2>
+        </div>
 
-<div class="card">
-<h3>Fuera</h3>
-<h2 id="fuera">0</h2>
-</div>
+        <div class="card card-fuera">
+            <h3>Fuera</h3>
+            <h2 id="fuera">0</h2>
+        </div>
 
-<div class="card">
-<h3>Vacía</h3>
-<h2 id="vacia">0</h2>
-</div>
+        <div class="card card-vacia">
+            <h3>Vacías</h3>
+            <h2 id="vacia">0</h2>
+        </div>
+
+    </div>
 
 </div>
 
 <div class="filtros">
 
-<input
-id="buscar"
-placeholder="Buscar lote...">
+    <input
+        id="buscar"
+        type="text"
+        placeholder="Buscar lote...">
 
-<select id="estadoFiltro">
-<option value="">Todos</option>
-<option>En Almacén</option>
-<option>Fuera</option>
-<option>Vacía</option>
-</select>
+    <select id="estadoFiltro">
+        <option value="">Todos los estados</option>
+        <option value="En Almacén">En Almacén</option>
+        <option value="Fuera">Fuera</option>
+        <option value="Vacía">Vacía</option>
+    </select>
 
 </div>
+
+<div class="tabla-container">
 
 <table>
 
 <thead>
 
 <tr>
-<th>Lote</th>
-<th>Producto</th>
-<th>Descripción</th>
-<th>Metros</th>
-<th>Estado</th>
-<th>Acción</th>
+    <th>LOTE</th>
+    <th>PRODUCTO</th>
+    <th>DESCRIPCIÓN</th>
+    <th>METROS</th>
+    <th>ESTADO</th>
+    <th>ACCIÓN</th>
 </tr>
 
 </thead>
@@ -186,164 +324,163 @@ placeholder="Buscar lote...">
 
 <script>
 
-const API =
-"https://script.google.com/macros/s/AKfycbznOEHikdjZFZwd7solq_S2awq5EOTrLx0Q9yRaWhPk4YW8Ug_70Kt6hh226NmMeT0/exec";
+const API = "https://script.google.com/macros/s/AKfycbznOEHikdjZFZwd7solq_S2awq5EOTrLx0Q9yRaWhPk4YW8Ug_70Kt6hh226NmMeT0/exec";
 
-let datos=[];
+let datos = [];
 
 async function cargar(){
 
-    const res = await fetch(API);
+    try{
 
-    datos = await res.json();
+        const response = await fetch(API);
 
-    actualizarDashboard();
+        datos = await response.json();
 
-    render();
+        actualizarDashboard();
+
+        render();
+
+    }catch(error){
+
+        console.error(error);
+
+        alert("Error cargando datos");
+
+    }
+
 }
 
 function actualizarDashboard(){
 
-    document.getElementById("total")
-      .innerText = datos.length;
+    document.getElementById("total").textContent =
+        datos.length;
 
-    document.getElementById("almacen")
-      .innerText =
-      datos.filter(x =>
-      x.Estado==="En Almacén").length;
+    document.getElementById("almacen").textContent =
+        datos.filter(x =>
+            x.Estado === "En Almacén").length;
 
-    document.getElementById("fuera")
-      .innerText =
-      datos.filter(x =>
-      x.Estado==="Fuera").length;
+    document.getElementById("fuera").textContent =
+        datos.filter(x =>
+            x.Estado === "Fuera").length;
 
-    document.getElementById("vacia")
-      .innerText =
-      datos.filter(x =>
-      x.Estado==="Vacía").length;
+    document.getElementById("vacia").textContent =
+        datos.filter(x =>
+            x.Estado === "Vacía").length;
 }
 
 function render(){
 
-    const buscar =
-      document
-      .getElementById("buscar")
-      .value
-      .toLowerCase();
+    const texto =
+        document.getElementById("buscar")
+        .value
+        .toLowerCase();
 
-    const estado =
-      document
-      .getElementById("estadoFiltro")
-      .value;
+    const estadoFiltro =
+        document.getElementById("estadoFiltro")
+        .value;
 
-    let html="";
+    let html = "";
 
     datos
-    .filter(r => {
 
-        const okLote =
-          String(r.LOTE)
-          .toLowerCase()
-          .includes(buscar);
+    .filter(item => {
 
-        const okEstado =
-          !estado ||
-          r.Estado===estado;
+        const coincideLote =
+            String(item.LOTE)
+            .toLowerCase()
+            .includes(texto);
 
-        return okLote && okEstado;
+        const coincideEstado =
+            !estadoFiltro ||
+            item.Estado === estadoFiltro;
+
+        return coincideLote &&
+               coincideEstado;
 
     })
-    .forEach(r=>{
 
-        let clase="";
+    .forEach(item => {
 
-        if(r.Estado==="En Almacén")
-            clase="estado-almacen";
+        let claseFila = "";
+        let badge = "";
+        let accion = "";
 
-        if(r.Estado==="Fuera")
-            clase="estado-fuera";
+        switch(item.Estado){
 
-        if(r.Estado==="Vacía")
-            clase="estado-vacia";
+            case "En Almacén":
 
-        let accion="";
+                claseFila = "estado-almacen";
 
-        if(r.Estado==="En Almacén"){
+                badge =
+                `<span class="badge badge-almacen">
+                    En Almacén
+                </span>`;
 
-            accion=
-            `<button
-              class="btn-salida"
-              onclick="salida('${r.LOTE}')">
-              Salida
-            </button>`;
-        }
+                accion =
+                `<button
+                    class="btn btn-salida"
+                    onclick="salida('${item.LOTE}')">
+                    ⬆ Salida
+                </button>`;
 
-        if(r.Estado==="Fuera"){
+                break;
 
-            accion=
-            `<button
-              class="btn-entrada"
-              onclick="entrada('${r.LOTE}')">
-              Entrada
-            </button>`;
+            case "Fuera":
+
+                claseFila = "estado-fuera";
+
+                badge =
+                `<span class="badge badge-fuera">
+                    Fuera
+                </span>`;
+
+                accion =
+                `<button
+                    class="btn btn-entrada"
+                    onclick="entrada('${item.LOTE}')">
+                    ⬇ Entrada
+                </button>`;
+
+                break;
+
+            case "Vacía":
+
+                claseFila = "estado-vacia";
+
+                badge =
+                `<span class="badge badge-vacia">
+                    Vacía
+                </span>`;
+
+                accion = "-";
+
+                break;
         }
 
         html += `
-        <tr class="${clase}">
-            <td>${r.LOTE}</td>
-            <td>${r.PRODUCTO}</td>
-            <td>${r.DESCRIPCION}</td>
-            <td>${r.METROS}</td>
-            <td>${r.Estado}</td>
+        <tr class="${claseFila}">
+
+            <td>${item.LOTE || ""}</td>
+
+            <td>${item.PRODUCTO || ""}</td>
+
+            <td>${item.DESCRIPCION || ""}</td>
+
+            <td>${item.METROS || ""}</td>
+
+            <td>${badge}</td>
+
             <td>${accion}</td>
+
         </tr>
         `;
     });
 
-    document
-      .getElementById("tabla")
-      .innerHTML = html;
+    document.getElementById("tabla").innerHTML =
+        html;
 }
 
-async function salida(lote){
-
-    if(!confirm(
-      `¿Registrar salida del lote ${lote}?`
-    )) return;
-
-    await actualizarEstado(
-      lote,
-      "Fuera"
-    );
-}
-
-async function entrada(lote){
-
-    const estado =
-      prompt(
-        "Estado final:\n\n1 = En Almacén\n2 = Vacía"
-      );
-
-    if(estado==="1"){
-
-      await actualizarEstado(
-        lote,
-        "En Almacén"
-      );
-
-    }else if(estado==="2"){
-
-      await actualizarEstado(
-        lote,
-        "Vacía"
-      );
-    }
-}
-
-async function actualizarEstado(
-    lote,
-    estado
-){
+async function actualizarEstado(lote, estado){
 
     await fetch(API,{
         method:"POST",
@@ -353,22 +490,58 @@ async function actualizarEstado(
         })
     });
 
-    cargar();
+    await cargar();
+}
+
+async function salida(lote){
+
+    const confirmar =
+        confirm(
+            `¿Registrar salida del lote ${lote}?`
+        );
+
+    if(!confirmar) return;
+
+    await actualizarEstado(
+        lote,
+        "Fuera"
+    );
+}
+
+async function entrada(lote){
+
+    const opcion =
+        prompt(
+`Seleccione estado final:
+
+1 = En Almacén
+2 = Vacía`
+        );
+
+    if(opcion === "1"){
+
+        await actualizarEstado(
+            lote,
+            "En Almacén"
+        );
+    }
+
+    if(opcion === "2"){
+
+        await actualizarEstado(
+            lote,
+            "Vacía"
+        );
+    }
 }
 
 document
 .getElementById("buscar")
-.addEventListener(
-    "input",
-    render
-);
+.addEventListener("input",render);
 
 document
 .getElementById("estadoFiltro")
-.addEventListener(
-    "change",
-    render
-);
+.addEventListener("change",render);
 
 cargar();
 
