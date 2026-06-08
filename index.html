@@ -1,98 +1,376 @@
 <!DOCTYPE html>
 <html lang="es">
+
 <head>
+
 <meta charset="UTF-8">
+
+<meta name="viewport"
+      content="width=device-width, initial-scale=1">
+
 <title>Control de Carretes</title>
 
 <style>
 
+*{
+    box-sizing:border-box;
+}
+
 body{
-    font-family: Arial;
-    margin:20px;
+    font-family:Segoe UI;
+    margin:0;
+    background:#f4f6f8;
+}
+
+header{
+    background:#0f172a;
+    color:white;
+    padding:20px;
+}
+
+.container{
+    padding:20px;
+}
+
+.cards{
+    display:grid;
+    grid-template-columns:
+        repeat(auto-fit,minmax(180px,1fr));
+    gap:15px;
+    margin-bottom:20px;
+}
+
+.card{
+    background:white;
+    border-radius:10px;
+    padding:20px;
+    box-shadow:0 2px 10px rgba(0,0,0,.1);
+}
+
+.card h2{
+    margin:0;
+    font-size:32px;
+}
+
+.filtros{
+    display:flex;
+    gap:10px;
+    flex-wrap:wrap;
+    margin-bottom:20px;
+}
+
+input,select{
+    padding:10px;
 }
 
 table{
-    border-collapse:collapse;
     width:100%;
-}
-
-th,td{
-    border:1px solid #ddd;
-    padding:8px;
+    border-collapse:collapse;
+    background:white;
 }
 
 th{
-    background:#f4f4f4;
+    background:#1e293b;
+    color:white;
+}
+
+th,td{
+    padding:10px;
+    text-align:left;
+}
+
+tr:nth-child(even){
+    background:#f8fafc;
+}
+
+.estado-almacen{
+    background:#dcfce7 !important;
 }
 
 .estado-fuera{
-    color:red;
-    font-weight:bold;
+    background:#fee2e2 !important;
 }
 
-.estado-dentro{
-    color:green;
-    font-weight:bold;
+.estado-vacia{
+    background:#e5e7eb !important;
+}
+
+button{
+    border:none;
+    padding:8px 12px;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.btn-salida{
+    background:#dc2626;
+    color:white;
+}
+
+.btn-entrada{
+    background:#16a34a;
+    color:white;
 }
 
 </style>
+
 </head>
+
 <body>
 
+<header>
 <h1>Control de Carretes</h1>
+</header>
 
-<button onclick="cargarDatos()">
-    Cargar datos
-</button>
+<div class="container">
 
-<br><br>
+<div class="cards">
 
-<table id="tabla"></table>
+<div class="card">
+<h3>Total</h3>
+<h2 id="total">0</h2>
+</div>
+
+<div class="card">
+<h3>En Almacén</h3>
+<h2 id="almacen">0</h2>
+</div>
+
+<div class="card">
+<h3>Fuera</h3>
+<h2 id="fuera">0</h2>
+</div>
+
+<div class="card">
+<h3>Vacía</h3>
+<h2 id="vacia">0</h2>
+</div>
+
+</div>
+
+<div class="filtros">
+
+<input
+id="buscar"
+placeholder="Buscar lote...">
+
+<select id="estadoFiltro">
+<option value="">Todos</option>
+<option>En Almacén</option>
+<option>Fuera</option>
+<option>Vacía</option>
+</select>
+
+</div>
+
+<table>
+
+<thead>
+
+<tr>
+<th>Lote</th>
+<th>Producto</th>
+<th>Descripción</th>
+<th>Metros</th>
+<th>Estado</th>
+<th>Acción</th>
+</tr>
+
+</thead>
+
+<tbody id="tabla"></tbody>
+
+</table>
+
+</div>
 
 <script>
 
-const API_URL =
-"https://script.google.com/macros/s/AKfycbwvj0UYj1a2Y0pthRwn0wMgQqJxgUOyFkJJyeN51a8MIyN8vmt1dUBRqlR4trcqVX-w/exec";
+const API =
+"https://script.google.com/macros/s/AKfycbznOEHikdjZFZwd7solq_S2awq5EOTrLx0Q9yRaWhPk4YW8Ug_70Kt6hh226NmMeT0/exec";
 
-async function cargarDatos(){
+let datos=[];
 
-    const response = await fetch(API_URL);
-    const datos = await response.json();
+async function cargar(){
 
-    let html = "";
+    const res = await fetch(API);
 
-    datos.forEach((fila,index)=>{
+    datos = await res.json();
 
-        html += "<tr>";
+    actualizarDashboard();
 
-        fila.forEach(celda=>{
+    render();
+}
 
-            if(index===0){
+function actualizarDashboard(){
 
-                html += `<th>${celda}</th>`;
+    document.getElementById("total")
+      .innerText = datos.length;
 
-            }else{
+    document.getElementById("almacen")
+      .innerText =
+      datos.filter(x =>
+      x.Estado==="En Almacén").length;
 
-                let clase = "";
+    document.getElementById("fuera")
+      .innerText =
+      datos.filter(x =>
+      x.Estado==="Fuera").length;
 
-                if(String(celda).toLowerCase()==="fuera"){
-                    clase="estado-fuera";
-                }
+    document.getElementById("vacia")
+      .innerText =
+      datos.filter(x =>
+      x.Estado==="Vacía").length;
+}
 
-                if(String(celda).toLowerCase()==="dentro"){
-                    clase="estado-dentro";
-                }
+function render(){
 
-                html += `<td class="${clase}">${celda}</td>`;
-            }
+    const buscar =
+      document
+      .getElementById("buscar")
+      .value
+      .toLowerCase();
 
-        });
+    const estado =
+      document
+      .getElementById("estadoFiltro")
+      .value;
 
-        html += "</tr>";
+    let html="";
+
+    datos
+    .filter(r => {
+
+        const okLote =
+          String(r.LOTE)
+          .toLowerCase()
+          .includes(buscar);
+
+        const okEstado =
+          !estado ||
+          r.Estado===estado;
+
+        return okLote && okEstado;
+
+    })
+    .forEach(r=>{
+
+        let clase="";
+
+        if(r.Estado==="En Almacén")
+            clase="estado-almacen";
+
+        if(r.Estado==="Fuera")
+            clase="estado-fuera";
+
+        if(r.Estado==="Vacía")
+            clase="estado-vacia";
+
+        let accion="";
+
+        if(r.Estado==="En Almacén"){
+
+            accion=
+            `<button
+              class="btn-salida"
+              onclick="salida('${r.LOTE}')">
+              Salida
+            </button>`;
+        }
+
+        if(r.Estado==="Fuera"){
+
+            accion=
+            `<button
+              class="btn-entrada"
+              onclick="entrada('${r.LOTE}')">
+              Entrada
+            </button>`;
+        }
+
+        html += `
+        <tr class="${clase}">
+            <td>${r.LOTE}</td>
+            <td>${r.PRODUCTO}</td>
+            <td>${r.DESCRIPCION}</td>
+            <td>${r.METROS}</td>
+            <td>${r.Estado}</td>
+            <td>${accion}</td>
+        </tr>
+        `;
     });
 
-    document.getElementById("tabla").innerHTML = html;
+    document
+      .getElementById("tabla")
+      .innerHTML = html;
 }
+
+async function salida(lote){
+
+    if(!confirm(
+      `¿Registrar salida del lote ${lote}?`
+    )) return;
+
+    await actualizarEstado(
+      lote,
+      "Fuera"
+    );
+}
+
+async function entrada(lote){
+
+    const estado =
+      prompt(
+        "Estado final:\n\n1 = En Almacén\n2 = Vacía"
+      );
+
+    if(estado==="1"){
+
+      await actualizarEstado(
+        lote,
+        "En Almacén"
+      );
+
+    }else if(estado==="2"){
+
+      await actualizarEstado(
+        lote,
+        "Vacía"
+      );
+    }
+}
+
+async function actualizarEstado(
+    lote,
+    estado
+){
+
+    await fetch(API,{
+        method:"POST",
+        body:JSON.stringify({
+            lote,
+            estado
+        })
+    });
+
+    cargar();
+}
+
+document
+.getElementById("buscar")
+.addEventListener(
+    "input",
+    render
+);
+
+document
+.getElementById("estadoFiltro")
+.addEventListener(
+    "change",
+    render
+);
+
+cargar();
 
 </script>
 
