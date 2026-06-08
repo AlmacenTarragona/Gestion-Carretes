@@ -1,85 +1,84 @@
 <!DOCTYPE html>
 <html lang="es">
 <head>
-  <meta charset="UTF-8">
-  <title>CRUD Carretes</title>
+    <meta charset="UTF-8">
+    <title>Control de Carretes</title>
 
-  <!-- Tailwind CSS -->
-  <script src="https://cdn.tailwindcss.com"></script>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+        }
 
-  <!-- QRCodeJS -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/qrcodejs/1.0.0/qrcode.min.js"></script>
+        button {
+            padding: 10px 20px;
+            cursor: pointer;
+        }
 
+        table {
+            border-collapse: collapse;
+            width: 100%;
+            margin-top: 20px;
+        }
+
+        th, td {
+            border: 1px solid #ccc;
+            padding: 8px;
+        }
+
+        th {
+            background: #f0f0f0;
+        }
+    </style>
 </head>
-<body class="bg-gray-100 p-6">
+<body>
 
-  <h1 class="text-3xl font-bold mb-6">Gestión de Carretes</h1>
+<h1>Control de Carretes</h1>
 
-  <!-- Filtros -->
-  <div class="flex gap-4 mb-4">
-    <select id="filtroEstado" class="p-2 border rounded">
-      <option value="">Estado</option>
-      <option value="En almacén">En almacén</option>
-      <option value="Fuera">Fuera</option>
-      <option value="Vacío/No disponible">Vacío/No disponible</option>
-    </select>
+<button onclick="cargarDatos()">
+    Cargar datos
+</button>
 
-    <input id="filtroCodigo" class="p-2 border rounded" placeholder="Código de producto">
+<table id="tabla"></table>
 
-    <input id="filtroProveedor" class="p-2 border rounded" placeholder="Proveedor">
-  </div>
+<script>
 
-  <!-- Tabla -->
-  <table class="min-w-full bg-white shadow-md rounded">
-    <thead>
-      <tr class="bg-gray-200 text-left">
-        <th class="p-2">Carrete</th>
-        <th class="p-2">Código</th>
-        <th class="p-2">Descripción</th>
-        <th class="p-2">Metros</th>
-        <th class="p-2">P.Interior</th>
-        <th class="p-2">P.Exterior</th>
-        <th class="p-2">Estado</th>
-        <th class="p-2">Proveedor</th>
-        <th class="p-2">Acciones</th>
-      </tr>
-    </thead>
-    <tbody id="tablaCarretes"></tbody>
-  </table>
+const API_URL =
+"https://script.google.com/macros/s/TU_ID_AQUI/exec";
 
-  <!-- Modal edición --->
-  <div id="modal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-lg w-96">
-      <h2 class="text-xl font-bold mb-4">Editar Carrete</h2>
+async function cargarDatos() {
 
-      <input id="editCarrete" class="p-2 border rounded w-full mb-2" disabled>
+    const response = await fetch(API_URL);
 
-      <label>Estado</label>
-      <select id="editEstado" class="p-2 border rounded w-full mb-2">
-        <option>En almacén</option>
-        <option>Fuera</option>
-        <option>Vacío/No disponible</option>
-      </select>
+    const datos = await response.json();
 
-      <label>P.Exterior</label>
-      <input id="editPExterior" class="p-2 border rounded w-full mb-4">
+    const tabla = document.getElementById("tabla");
 
-      <div class="flex justify-between">
-        <button onclick="guardarCambios()" class="bg-blue-600 text-white px-4 py-2 rounded">Guardar</button>
-        <button onclick="cerrarModal()" class="bg-gray-400 text-white px-4 py-2 rounded">Cancelar</button>
-      </div>
-    </div>
-  </div>
+    tabla.innerHTML = "";
 
-  <!-- QR Modal -->
-  <div id="qrModal" class="fixed inset-0 bg-black bg-opacity-50 hidden items-center justify-center">
-    <div class="bg-white p-6 rounded shadow-lg">
-      <h2 class="text-xl font-bold mb-4">QR del Carrete</h2>
-      <div id="qrContainer" class="mb-4"></div>
-      <button onclick="cerrarQR()" class="bg-gray-400 text-white px-4 py-2 rounded">Cerrar</button>
-    </div>
-  </div>
+    datos.forEach((fila, indice) => {
 
-  <script src="./js_app.js"></script>
+        const tr = document.createElement("tr");
+
+        fila.forEach(celda => {
+
+            const elemento =
+                document.createElement(
+                    indice === 0 ? "th" : "td"
+                );
+
+            elemento.textContent = celda;
+
+            tr.appendChild(elemento);
+
+        });
+
+        tabla.appendChild(tr);
+
+    });
+}
+
+</script>
+
 </body>
 </html>
