@@ -25,15 +25,9 @@ header{
     background:#0f172a;
     color:white;
     padding:20px 30px;
-    box-shadow:0 2px 10px rgba(0,0,0,.2);
-}
-
-header h1{
-    font-size:28px;
 }
 
 /* DASHBOARD */
-
 .dashboard{
     position:sticky;
     top:0;
@@ -52,8 +46,9 @@ header h1{
     border-radius:16px;
     padding:20px;
     color:white;
+    cursor:pointer;
+    transition:.2s;
     box-shadow:0 8px 20px rgba(0,0,0,.15);
-    transition:.3s;
 }
 
 .card:hover{
@@ -62,79 +57,45 @@ header h1{
 
 .card h3{
     font-size:14px;
-    text-transform:uppercase;
     opacity:.85;
+    text-transform:uppercase;
 }
 
 .card h2{
-    margin-top:10px;
     font-size:42px;
+    margin-top:10px;
 }
 
-.card-total{
-    background:linear-gradient(135deg,#0f172a,#334155);
+.card-total{ background:linear-gradient(135deg,#0f172a,#334155); }
+.card-almacen{ background:linear-gradient(135deg,#16a34a,#22c55e); }
+.card-fuera{ background:linear-gradient(135deg,#dc2626,#ef4444); }
+.card-vacia{ background:linear-gradient(135deg,#4b5563,#6b7280); }
+
+/* CARD ACTIVA */
+.card.active{
+    outline:3px solid white;
+    transform:scale(1.03);
 }
 
-.card-almacen{
-    background:linear-gradient(135deg,#16a34a,#22c55e);
-}
-
-.card-fuera{
-    background:linear-gradient(135deg,#dc2626,#ef4444);
-}
-
-.card-vacia{
-    background:linear-gradient(135deg,#4b5563,#6b7280);
-}
-
-/* FILTROS */
-
+/* FILTROS (solo búsqueda) */
 .filtros{
-    position:sticky;
-    top:160px;
-    z-index:999;
-
     margin:20px;
-    padding:15px;
-
-    background:white;
-
-    border-radius:12px;
-
-    display:flex;
-    flex-wrap:wrap;
-    gap:10px;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
 }
 
-.filtros input,
-.filtros select{
-
+.filtros input{
+    width:100%;
     padding:12px;
-
+    border-radius:10px;
     border:1px solid #cbd5e1;
-
-    border-radius:8px;
-
-    font-size:14px;
 }
 
 /* TABLA */
-
 .tabla-container{
-
     margin:20px;
-
     background:white;
-
     border-radius:12px;
-
     overflow:auto;
-
     max-height:70vh;
-
-    box-shadow:0 2px 10px rgba(0,0,0,.1);
 }
 
 table{
@@ -143,19 +104,12 @@ table{
 }
 
 thead th{
-
     position:sticky;
     top:0;
-
     background:#0f172a;
-
     color:white;
-
     padding:14px;
-
     text-align:left;
-
-    z-index:10;
 }
 
 tbody td{
@@ -163,88 +117,23 @@ tbody td{
     border-bottom:1px solid #e2e8f0;
 }
 
-tbody tr:hover{
-    background:#f8fafc;
-}
-
-/* ESTADOS */
-
-.estado-almacen{
-    background:#dcfce7 !important;
-}
-
-.estado-fuera{
-    background:#fee2e2 !important;
-}
-
-.estado-vacia{
-    background:#e5e7eb !important;
-}
-
-.badge{
-    padding:6px 12px;
-    border-radius:20px;
-    font-size:13px;
+/* ESTADOS (SIN COLORES NI CONTORNOS) */
+.estado{
     font-weight:600;
 }
 
-.badge-almacen{
-    background:#16a34a;
-    color:white;
-}
-
-.badge-fuera{
-    background:#dc2626;
-    color:white;
-}
-
-.badge-vacia{
-    background:#6b7280;
-    color:white;
-}
-
-/* BOTONES */
-
+/* BOTONES IGUALES */
 .btn{
-
+    width:120px;
+    height:36px;
     border:none;
-
-    padding:8px 14px;
-
     border-radius:8px;
-
     cursor:pointer;
-
     font-weight:600;
 }
 
-.btn-salida{
-    background:#dc2626;
-    color:white;
-}
-
-.btn-entrada{
-    background:#16a34a;
-    color:white;
-}
-
-.btn:hover{
-    opacity:.9;
-}
-
-/* RESPONSIVE */
-
-@media(max-width:768px){
-
-    .card h2{
-        font-size:32px;
-    }
-
-    .filtros{
-        top:250px;
-    }
-
-}
+.btn-salida{ background:#dc2626; color:white; }
+.btn-entrada{ background:#16a34a; color:white; }
 
 </style>
 </head>
@@ -259,22 +148,22 @@ tbody tr:hover{
 
     <div class="cards">
 
-        <div class="card card-total">
+        <div class="card card-total active" onclick="filtrarEstado('')">
             <h3>Total</h3>
             <h2 id="total">0</h2>
         </div>
 
-        <div class="card card-almacen">
+        <div class="card card-almacen" onclick="filtrarEstado('En Almacén')">
             <h3>En Almacén</h3>
             <h2 id="almacen">0</h2>
         </div>
 
-        <div class="card card-fuera">
+        <div class="card card-fuera" onclick="filtrarEstado('Fuera')">
             <h3>Fuera</h3>
             <h2 id="fuera">0</h2>
         </div>
 
-        <div class="card card-vacia">
+        <div class="card card-vacia" onclick="filtrarEstado('Vacía')">
             <h3>Vacías</h3>
             <h2 id="vacia">0</h2>
         </div>
@@ -284,19 +173,7 @@ tbody tr:hover{
 </div>
 
 <div class="filtros">
-
-    <input
-        id="buscar"
-        type="text"
-        placeholder="Buscar lote...">
-
-    <select id="estadoFiltro">
-        <option value="">Todos los estados</option>
-        <option value="En Almacén">En Almacén</option>
-        <option value="Fuera">Fuera</option>
-        <option value="Vacía">Vacía</option>
-    </select>
-
+    <input id="buscar" type="text" placeholder="🔍 Buscar lote...">
 </div>
 
 <div class="tabla-container">
@@ -304,7 +181,6 @@ tbody tr:hover{
 <table>
 
 <thead>
-
 <tr>
     <th>LOTE</th>
     <th>PRODUCTO</th>
@@ -313,7 +189,6 @@ tbody tr:hover{
     <th>ESTADO</th>
     <th>ACCIÓN</th>
 </tr>
-
 </thead>
 
 <tbody id="tabla"></tbody>
@@ -327,221 +202,110 @@ tbody tr:hover{
 const API = "https://script.google.com/macros/s/AKfycbznOEHikdjZFZwd7solq_S2awq5EOTrLx0Q9yRaWhPk4YW8Ug_70Kt6hh226NmMeT0/exec";
 
 let datos = [];
+let filtroEstado = "";
 
 async function cargar(){
 
-    try{
+    const response = await fetch(API);
+    datos = await response.json();
 
-        const response = await fetch(API);
+    actualizarDashboard();
+    render();
+}
 
-        datos = await response.json();
+function filtrarEstado(estado){
 
-        actualizarDashboard();
+    filtroEstado = estado;
 
-        render();
+    document.querySelectorAll('.card')
+        .forEach(c => c.classList.remove('active'));
 
-    }catch(error){
+    if(!estado) document.querySelector('.card-total').classList.add('active');
+    if(estado==='En Almacén') document.querySelector('.card-almacen').classList.add('active');
+    if(estado==='Fuera') document.querySelector('.card-fuera').classList.add('active');
+    if(estado==='Vacía') document.querySelector('.card-vacia').classList.add('active');
 
-        console.error(error);
-
-        alert("Error cargando datos");
-
-    }
-
+    render();
 }
 
 function actualizarDashboard(){
 
-    document.getElementById("total").textContent =
-        datos.length;
-
-    document.getElementById("almacen").textContent =
-        datos.filter(x =>
-            x.Estado === "En Almacén").length;
-
-    document.getElementById("fuera").textContent =
-        datos.filter(x =>
-            x.Estado === "Fuera").length;
-
-    document.getElementById("vacia").textContent =
-        datos.filter(x =>
-            x.Estado === "Vacía").length;
+    document.getElementById("total").textContent = datos.length;
+    document.getElementById("almacen").textContent = datos.filter(x=>x.Estado==="En Almacén").length;
+    document.getElementById("fuera").textContent = datos.filter(x=>x.Estado==="Fuera").length;
+    document.getElementById("vacia").textContent = datos.filter(x=>x.Estado==="Vacía").length;
 }
 
 function render(){
 
-    const texto =
-        document.getElementById("buscar")
-        .value
-        .toLowerCase();
-
-    const estadoFiltro =
-        document.getElementById("estadoFiltro")
-        .value;
+    const texto = document.getElementById("buscar").value.toLowerCase();
 
     let html = "";
 
     datos
+    .filter(item=>{
 
-    .filter(item => {
+        const okLote = String(item.LOTE).toLowerCase().includes(texto);
+        const okEstado = !filtroEstado || item.Estado === filtroEstado;
 
-        const coincideLote =
-            String(item.LOTE)
-            .toLowerCase()
-            .includes(texto);
-
-        const coincideEstado =
-            !estadoFiltro ||
-            item.Estado === estadoFiltro;
-
-        return coincideLote &&
-               coincideEstado;
-
+        return okLote && okEstado;
     })
 
-    .forEach(item => {
+    .forEach(item=>{
 
-        let claseFila = "";
-        let badge = "";
         let accion = "";
 
-        switch(item.Estado){
+        if(item.Estado==="En Almacén"){
+            accion = `<button class="btn btn-salida" onclick="salida('${item.LOTE}')">Salida</button>`;
+        }
 
-            case "En Almacén":
-
-                claseFila = "estado-almacen";
-
-                badge =
-                `<span class="badge badge-almacen">
-                    En Almacén
-                </span>`;
-
-                accion =
-                `<button
-                    class="btn btn-salida"
-                    onclick="salida('${item.LOTE}')">
-                    ⬆ Salida
-                </button>`;
-
-                break;
-
-            case "Fuera":
-
-                claseFila = "estado-fuera";
-
-                badge =
-                `<span class="badge badge-fuera">
-                    Fuera
-                </span>`;
-
-                accion =
-                `<button
-                    class="btn btn-entrada"
-                    onclick="entrada('${item.LOTE}')">
-                    ⬇ Entrada
-                </button>`;
-
-                break;
-
-            case "Vacía":
-
-                claseFila = "estado-vacia";
-
-                badge =
-                `<span class="badge badge-vacia">
-                    Vacía
-                </span>`;
-
-                accion = "-";
-
-                break;
+        if(item.Estado==="Fuera"){
+            accion = `<button class="btn btn-entrada" onclick="entrada('${item.LOTE}')">Entrada</button>`;
         }
 
         html += `
-        <tr class="${claseFila}">
+        <tr>
 
-            <td>${item.LOTE || ""}</td>
+            <td>${item.LOTE}</td>
+            <td>${item.PRODUCTO}</td>
+            <td>${item.DESCRIPCION}</td>
+            <td>${item.METROS}</td>
 
-            <td>${item.PRODUCTO || ""}</td>
-
-            <td>${item.DESCRIPCION || ""}</td>
-
-            <td>${item.METROS || ""}</td>
-
-            <td>${badge}</td>
+            <td class="estado">${item.Estado}</td>
 
             <td>${accion}</td>
 
-        </tr>
-        `;
+        </tr>`;
     });
 
-    document.getElementById("tabla").innerHTML =
-        html;
+    document.getElementById("tabla").innerHTML = html;
 }
 
 async function actualizarEstado(lote, estado){
 
     await fetch(API,{
         method:"POST",
-        body:JSON.stringify({
-            lote,
-            estado
-        })
+        body:JSON.stringify({lote,estado})
     });
 
-    await cargar();
+    cargar();
 }
 
 async function salida(lote){
-
-    const confirmar =
-        confirm(
-            `¿Registrar salida del lote ${lote}?`
-        );
-
-    if(!confirmar) return;
-
-    await actualizarEstado(
-        lote,
-        "Fuera"
-    );
+    if(confirm("¿Salida del lote "+lote+"?")){
+        actualizarEstado(lote,"Fuera");
+    }
 }
 
 async function entrada(lote){
 
-    const opcion =
-        prompt(
-`Seleccione estado final:
+    const op = prompt("1 = En Almacén\n2 = Vacía");
 
-1 = En Almacén
-2 = Vacía`
-        );
-
-    if(opcion === "1"){
-
-        await actualizarEstado(
-            lote,
-            "En Almacén"
-        );
-    }
-
-    if(opcion === "2"){
-
-        await actualizarEstado(
-            lote,
-            "Vacía"
-        );
-    }
+    if(op==="1") actualizarEstado(lote,"En Almacén");
+    if(op==="2") actualizarEstado(lote,"Vacía");
 }
 
-document
-.getElementById("buscar")
-.addEventListener("input",render);
-
-document
-.getElementById("estadoFiltro")
-.addEventListener("change",render);
+document.getElementById("buscar").addEventListener("input",render);
 
 cargar();
 
