@@ -304,3 +304,91 @@ async function guardarEdicion(id) {
     await recargarSistema();
 
 }
+/**
+ * =====================================================
+ * HISTORIAL DE MOVIMIENTOS
+ * =====================================================
+ */
+
+async function verHistorial(id) {
+
+    const movimientos =
+        await obtenerHistorial(id);
+
+    let rows = "";
+
+    movimientos.forEach(m => {
+
+        rows += `
+            <tr>
+
+                <td>${m.FECHA || ""}</td>
+
+                <td>${m.TIPO || ""}</td>
+
+                <td>${m.ACTUACION || ""}</td>
+
+                <td>${m.BRIGADA || ""}</td>
+
+                <td>${m.PI_ANTERIOR || ""}</td>
+
+                <td>${m.PI_NUEVO || ""}</td>
+
+                <td>${m.CONSUMO || 0}</td>
+
+                <td>${m.METROS_RESTANTES || ""}</td>
+
+            </tr>
+        `;
+
+    });
+
+
+    const html = `
+        <h2>📋 Historial de Movimientos</h2>
+
+        <div style="max-height:60vh;overflow:auto;">
+
+            <table style="width:100%;border-collapse:collapse;">
+
+                <thead>
+
+                    <tr style="background:#0f172a;color:white;">
+
+                        <th>Fecha</th>
+                        <th>Tipo</th>
+                        <th>Actuación</th>
+                        <th>Brigada</th>
+                        <th>PI Ant.</th>
+                        <th>PI Nue.</th>
+                        <th>Consumo</th>
+                        <th>Metros</th>
+
+                    </tr>
+
+                </thead>
+
+                <tbody>
+
+                    ${rows}
+
+                </tbody>
+
+            </table>
+
+        </div>
+
+        <div class="modal-footer">
+
+            <button class="btn btn-primary"
+                onclick="cerrarModal()">
+
+                Cerrar
+
+            </button>
+
+        </div>
+    `;
+
+    abrirModal(html);
+}
