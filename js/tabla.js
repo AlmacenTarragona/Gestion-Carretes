@@ -1,13 +1,13 @@
 /**
  * =====================================================
  * TABLA.JS
- * Render inventario + acciones + filtros
+ * Render inventario + acciones + historial
  * =====================================================
  */
 
 
 /**
- * Render principal de la tabla
+ * Render tabla principal
  */
 function renderTabla() {
 
@@ -160,7 +160,7 @@ function renderTabla() {
 
 
         // =========================
-        // ROW HTML
+        // ROW
         // =========================
         html += `
             <tr class="${claseFila}">
@@ -192,13 +192,13 @@ function renderTabla() {
 
 /**
  * =========================
- * ACCIONES UI
+ * ACCIONES
  * =========================
  */
 
 
 /**
- * Ver detalle
+ * Ver carrete
  */
 function verCarrete(id) {
 
@@ -256,8 +256,7 @@ async function salidaUI(id) {
 
         id,
         ACTUACION: actuacion,
-        BRIGADA: brigada,
-        OBSERVACIONES: ""
+        BRIGADA: brigada
 
     });
 
