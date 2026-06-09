@@ -1,7 +1,7 @@
 /**
  * =====================================================
  * TABLA.JS
- * Render de inventario + filtros + acciones
+ * Render inventario + acciones + filtros
  * =====================================================
  */
 
@@ -27,15 +27,13 @@ function renderTabla() {
                 item.Estado === filtroEstado;
 
             const texto =
-                textoBusqueda || "";
+                (textoBusqueda || "").toLowerCase();
 
             const matchTexto =
                 !texto ||
-                (
-                    (item.LOTE || "").toLowerCase().includes(texto) ||
-                    (item.PRODUCTO || "").toLowerCase().includes(texto) ||
-                    (item.DESCRIPCION || "").toLowerCase().includes(texto)
-                );
+                (item.LOTE || "").toLowerCase().includes(texto) ||
+                (item.PRODUCTO || "").toLowerCase().includes(texto) ||
+                (item.DESCRIPCION || "").toLowerCase().includes(texto);
 
             return matchEstado && matchTexto;
 
@@ -44,116 +42,126 @@ function renderTabla() {
 
     filtrados.forEach(item => {
 
-        const estado = item.Estado;
+        const id =
+            item["NUMERO REGISTRO"];
+
+        const estado =
+            item.Estado;
+
 
         let claseFila = "";
         let badge = "";
         let acciones = "";
 
-        switch (estado) {
 
-            case "En Almacén":
+        // =========================
+        // EN ALMACÉN
+        // =========================
+        if (estado === "En Almacén") {
 
-                claseFila = "estado-almacen";
+            claseFila = "estado-almacen";
 
-                badge =
-                    `<span class="badge badge-almacen">En Almacén</span>`;
+            badge = `
+                <span class="badge badge-almacen">
+                    En Almacén
+                </span>
+            `;
 
-                acciones = `
-                    <div class="acciones">
+            acciones = `
+                <div class="acciones">
 
-                        <button class="btn btn-info"
-                            onclick="verCarrete(${item['NUMERO REGISTRO']})">
-                            👁
-                        </button>
+                    <button class="btn btn-info"
+                        onclick="verCarrete(${id})">👁</button>
 
-                        <button class="btn btn-warning"
-                            onclick="editarCarreteUI(${item['NUMERO REGISTRO']})">
-                            ✏
-                        </button>
+                    <button class="btn btn-warning"
+                        onclick="editarCarreteUI(${id})">✏</button>
 
-                        <button class="btn btn-danger"
-                            onclick="eliminarCarreteUI(${item['NUMERO REGISTRO']})">
-                            🗑
-                        </button>
+                    <button class="btn btn-danger"
+                        onclick="eliminarCarreteUI(${id})">🗑</button>
 
-                        <button class="btn btn-danger"
-                            onclick="salidaUI(${item['NUMERO REGISTRO']})">
-                            ⬆
-                        </button>
+                    <button class="btn btn-danger"
+                        onclick="salidaUI(${id})">⬆</button>
 
-                    </div>
-                `;
+                    <button class="btn btn-info"
+                        onclick="verHistorial(${id})">📋</button>
 
-                break;
-
-            case "Fuera":
-
-                claseFila = "estado-fuera";
-
-                badge =
-                    `<span class="badge badge-fuera">Fuera</span>`;
-
-                acciones = `
-                    <div class="acciones">
-
-                        <button class="btn btn-info"
-                            onclick="verCarrete(${item['NUMERO REGISTRO']})">
-                            👁
-                        </button>
-
-                        <button class="btn btn-warning"
-                            onclick="editarCarreteUI(${item['NUMERO REGISTRO']})">
-                            ✏
-                        </button>
-
-                        <button class="btn btn-danger"
-                            onclick="eliminarCarreteUI(${item['NUMERO REGISTRO']})">
-                            🗑
-                        </button>
-
-                        <button class="btn btn-success"
-                            onclick="entradaUI(${item['NUMERO REGISTRO']})">
-                            ⬇
-                        </button>
-
-                    </div>
-                `;
-
-                break;
-
-            case "Vacía":
-
-                claseFila = "estado-vacia";
-
-                badge =
-                    `<span class="badge badge-vacia">Vacía</span>`;
-
-                acciones = `
-                    <div class="acciones">
-
-                        <button class="btn btn-info"
-                            onclick="verCarrete(${item['NUMERO REGISTRO']})">
-                            👁
-                        </button>
-
-                        <button class="btn btn-warning"
-                            onclick="editarCarreteUI(${item['NUMERO REGISTRO']})">
-                            ✏
-                        </button>
-
-                        <button class="btn btn-danger"
-                            onclick="eliminarCarreteUI(${item['NUMERO REGISTRO']})">
-                            🗑
-                        </button>
-
-                    </div>
-                `;
-
-                break;
+                </div>
+            `;
         }
 
 
+        // =========================
+        // FUERA
+        // =========================
+        else if (estado === "Fuera") {
+
+            claseFila = "estado-fuera";
+
+            badge = `
+                <span class="badge badge-fuera">
+                    Fuera
+                </span>
+            `;
+
+            acciones = `
+                <div class="acciones">
+
+                    <button class="btn btn-info"
+                        onclick="verCarrete(${id})">👁</button>
+
+                    <button class="btn btn-warning"
+                        onclick="editarCarreteUI(${id})">✏</button>
+
+                    <button class="btn btn-danger"
+                        onclick="eliminarCarreteUI(${id})">🗑</button>
+
+                    <button class="btn btn-success"
+                        onclick="entradaUI(${id})">⬇</button>
+
+                    <button class="btn btn-info"
+                        onclick="verHistorial(${id})">📋</button>
+
+                </div>
+            `;
+        }
+
+
+        // =========================
+        // VACÍA
+        // =========================
+        else if (estado === "Vacía") {
+
+            claseFila = "estado-vacia";
+
+            badge = `
+                <span class="badge badge-vacia">
+                    Vacía
+                </span>
+            `;
+
+            acciones = `
+                <div class="acciones">
+
+                    <button class="btn btn-info"
+                        onclick="verCarrete(${id})">👁</button>
+
+                    <button class="btn btn-warning"
+                        onclick="editarCarreteUI(${id})">✏</button>
+
+                    <button class="btn btn-danger"
+                        onclick="eliminarCarreteUI(${id})">🗑</button>
+
+                    <button class="btn btn-info"
+                        onclick="verHistorial(${id})">📋</button>
+
+                </div>
+            `;
+        }
+
+
+        // =========================
+        // ROW HTML
+        // =========================
         html += `
             <tr class="${claseFila}">
 
@@ -184,10 +192,14 @@ function renderTabla() {
 
 /**
  * =========================
- * ACCIONES UI (PLACEHOLDERS)
+ * ACCIONES UI
  * =========================
  */
 
+
+/**
+ * Ver detalle
+ */
 function verCarrete(id) {
 
     const item =
@@ -195,25 +207,28 @@ function verCarrete(id) {
             Number(x["NUMERO REGISTRO"]) === Number(id)
         );
 
-    alert(JSON.stringify(item, null, 2));
+    abrirModal(`
+        <h2>Detalle Carrete</h2>
+
+        <pre style="background:#f1f5f9;padding:15px;border-radius:10px;">
+${JSON.stringify(item, null, 2)}
+        </pre>
+
+        <div class="modal-footer">
+
+            <button class="btn btn-primary"
+                onclick="cerrarModal()">
+                Cerrar
+            </button>
+
+        </div>
+    `);
 
 }
 
 
 /**
- * EDITAR
- */
-function editarCarreteUI(id) {
-
-    carreteSeleccionado = id;
-
-    alert("Aquí abriríamos modal de edición (siguiente paso)");
-
-}
-
-
-/**
- * ELIMINAR
+ * Eliminar
  */
 async function eliminarCarreteUI(id) {
 
@@ -232,21 +247,16 @@ async function eliminarCarreteUI(id) {
 async function salidaUI(id) {
 
     const actuacion =
-        prompt("Actuación (obra/proyecto)");
+        prompt("Actuación / Proyecto");
 
     const brigada =
         prompt("Brigada");
 
     await registrarSalida({
 
-        action: "salida",
-
         id,
-
         ACTUACION: actuacion,
-
         BRIGADA: brigada,
-
         OBSERVACIONES: ""
 
     });
@@ -262,31 +272,24 @@ async function salidaUI(id) {
 async function entradaUI(id) {
 
     const pi =
-        prompt("PI actual del carrete");
+        prompt("PI actual");
 
     const actuacion =
-        prompt("Actuación");
+        prompt("Actuación / Proyecto");
 
     const brigada =
         prompt("Brigada");
 
-    const observaciones =
+    const obs =
         prompt("Observaciones");
 
     await registrarEntrada({
 
-        action: "entrada",
-
         id,
-
         PI_NUEVO: pi,
-
         ACTUACION: actuacion,
-
         BRIGADA: brigada,
-
-        OBSERVACIONES: observaciones,
-
+        OBSERVACIONES: obs,
         ESTADO_FINAL: "En Almacén"
 
     });
