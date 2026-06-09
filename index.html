@@ -2,314 +2,197 @@
 <html lang="es">
 
 <head>
+
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 
 <title>Control de Carretes</title>
 
-<style>
+<link rel="stylesheet" href="css/style.css">
 
-*{
-    margin:0;
-    padding:0;
-    box-sizing:border-box;
-}
-
-body{
-    font-family:'Segoe UI',sans-serif;
-    background:#f1f5f9;
-    color:#1e293b;
-}
-
-header{
-    background:#0f172a;
-    color:white;
-    padding:20px 30px;
-}
-
-/* DASHBOARD */
-.dashboard{
-    position:sticky;
-    top:0;
-    z-index:1000;
-    background:#f1f5f9;
-    padding:20px;
-}
-
-.cards{
-    display:grid;
-    grid-template-columns:repeat(auto-fit,minmax(220px,1fr));
-    gap:20px;
-}
-
-.card{
-    border-radius:16px;
-    padding:20px;
-    color:white;
-    cursor:pointer;
-    transition:.2s;
-    box-shadow:0 8px 20px rgba(0,0,0,.15);
-}
-
-.card:hover{
-    transform:translateY(-3px);
-}
-
-.card h3{
-    font-size:14px;
-    opacity:.85;
-    text-transform:uppercase;
-}
-
-.card h2{
-    font-size:42px;
-    margin-top:10px;
-}
-
-.card-total{ background:linear-gradient(135deg,#0f172a,#334155); }
-.card-almacen{ background:linear-gradient(135deg,#16a34a,#22c55e); }
-.card-fuera{ background:linear-gradient(135deg,#dc2626,#ef4444); }
-.card-vacia{ background:linear-gradient(135deg,#4b5563,#6b7280); }
-
-/* CARD ACTIVA */
-.card.active{
-    outline:3px solid white;
-    transform:scale(1.03);
-}
-
-/* FILTROS (solo búsqueda) */
-.filtros{
-    margin:20px;
-}
-
-.filtros input{
-    width:100%;
-    padding:12px;
-    border-radius:10px;
-    border:1px solid #cbd5e1;
-}
-
-/* TABLA */
-.tabla-container{
-    margin:20px;
-    background:white;
-    border-radius:12px;
-    overflow:auto;
-    max-height:70vh;
-}
-
-table{
-    width:100%;
-    border-collapse:collapse;
-}
-
-thead th{
-    position:sticky;
-    top:0;
-    background:#0f172a;
-    color:white;
-    padding:14px;
-    text-align:left;
-}
-
-tbody td{
-    padding:12px;
-    border-bottom:1px solid #e2e8f0;
-}
-
-/* ESTADOS (SIN COLORES NI CONTORNOS) */
-.estado{
-    font-weight:600;
-}
-
-/* BOTONES IGUALES */
-.btn{
-    width:120px;
-    height:36px;
-    border:none;
-    border-radius:8px;
-    cursor:pointer;
-    font-weight:600;
-}
-
-.btn-salida{ background:#dc2626; color:white; }
-.btn-entrada{ background:#16a34a; color:white; }
-
-</style>
 </head>
 
 <body>
 
 <header>
-    <h1>📦 Control de Carretes</h1>
+
+    <div class="header-left">
+
+        <h1>📦 Control de Carretes</h1>
+
+        <span class="subtitulo">
+            Inventario y Movimientos
+        </span>
+
+    </div>
+
+    <div class="header-right">
+
+        <button
+            class="btn btn-primary"
+            onclick="abrirNuevoCarrete()">
+
+            ➕ Nuevo Carrete
+
+        </button>
+
+    </div>
+
 </header>
 
-<div class="dashboard">
 
-    <div class="cards">
+<!-- DASHBOARD -->
 
-        <div class="card card-total active" onclick="filtrarEstado('')">
-            <h3>Total</h3>
-            <h2 id="total">0</h2>
-        </div>
+<section class="dashboard">
 
-        <div class="card card-almacen" onclick="filtrarEstado('En Almacén')">
-            <h3>En Almacén</h3>
-            <h2 id="almacen">0</h2>
-        </div>
+    <div
+        class="card card-total"
+        onclick="filtrarEstado('')">
 
-        <div class="card card-fuera" onclick="filtrarEstado('Fuera')">
-            <h3>Fuera</h3>
-            <h2 id="fuera">0</h2>
-        </div>
+        <span>Total</span>
 
-        <div class="card card-vacia" onclick="filtrarEstado('Vacía')">
-            <h3>Vacías</h3>
-            <h2 id="vacia">0</h2>
-        </div>
+        <h2 id="total">
+            0
+        </h2>
+
+    </div>
+
+    <div
+        class="card card-almacen"
+        onclick="filtrarEstado('En Almacén')">
+
+        <span>En Almacén</span>
+
+        <h2 id="almacen">
+            0
+        </h2>
+
+    </div>
+
+    <div
+        class="card card-fuera"
+        onclick="filtrarEstado('Fuera')">
+
+        <span>Fuera</span>
+
+        <h2 id="fuera">
+            0
+        </h2>
+
+    </div>
+
+    <div
+        class="card card-vacia"
+        onclick="filtrarEstado('Vacía')">
+
+        <span>Vacía</span>
+
+        <h2 id="vacia">
+            0
+        </h2>
+
+    </div>
+
+</section>
+
+
+<!-- FILTROS -->
+
+<section class="toolbar">
+
+    <input
+        type="text"
+        id="buscar"
+        placeholder="Buscar lote, producto o descripción...">
+
+    <button
+        class="btn btn-light"
+        onclick="limpiarFiltros()">
+
+        Limpiar
+
+    </button>
+
+</section>
+
+
+<!-- TABLA -->
+
+<section class="tabla-container">
+
+    <table>
+
+        <thead>
+
+            <tr>
+
+                <th>LOTE</th>
+
+                <th>PRODUCTO</th>
+
+                <th>DESCRIPCIÓN</th>
+
+                <th>METROS</th>
+
+                <th>PI</th>
+
+                <th>ESTADO</th>
+
+                <th>ACCIONES</th>
+
+            </tr>
+
+        </thead>
+
+        <tbody id="tabla">
+
+        </tbody>
+
+    </table>
+
+</section>
+
+
+<!-- MODAL -->
+
+<div
+    id="modalOverlay"
+    class="modal-overlay oculto">
+
+    <div
+        id="modalContent"
+        class="modal">
 
     </div>
 
 </div>
 
-<div class="filtros">
-    <input id="buscar" type="text" placeholder="🔍 Buscar lote...">
-</div>
 
-<div class="tabla-container">
+<!-- LOADER -->
 
-<table>
+<div
+    id="loader"
+    class="loader oculto">
 
-<thead>
-<tr>
-    <th>LOTE</th>
-    <th>PRODUCTO</th>
-    <th>DESCRIPCIÓN</th>
-    <th>METROS</th>
-    <th>ESTADO</th>
-    <th>ACCIÓN</th>
-</tr>
-</thead>
-
-<tbody id="tabla"></tbody>
-
-</table>
+    Cargando...
 
 </div>
 
-<script>
 
-const API = "https://script.google.com/macros/s/AKfycbznOEHikdjZFZwd7solq_S2awq5EOTrLx0Q9yRaWhPk4YW8Ug_70Kt6hh226NmMeT0/exec";
+<!-- JS -->
 
-let datos = [];
-let filtroEstado = "";
+<script src="js/config.js"></script>
 
-async function cargar(){
+<script src="js/api.js"></script>
 
-    const response = await fetch(API);
-    datos = await response.json();
+<script src="js/dashboard.js"></script>
 
-    actualizarDashboard();
-    render();
-}
+<script src="js/tabla.js"></script>
 
-function filtrarEstado(estado){
+<script src="js/modales.js"></script>
 
-    filtroEstado = estado;
-
-    document.querySelectorAll('.card')
-        .forEach(c => c.classList.remove('active'));
-
-    if(!estado) document.querySelector('.card-total').classList.add('active');
-    if(estado==='En Almacén') document.querySelector('.card-almacen').classList.add('active');
-    if(estado==='Fuera') document.querySelector('.card-fuera').classList.add('active');
-    if(estado==='Vacía') document.querySelector('.card-vacia').classList.add('active');
-
-    render();
-}
-
-function actualizarDashboard(){
-
-    document.getElementById("total").textContent = datos.length;
-    document.getElementById("almacen").textContent = datos.filter(x=>x.Estado==="En Almacén").length;
-    document.getElementById("fuera").textContent = datos.filter(x=>x.Estado==="Fuera").length;
-    document.getElementById("vacia").textContent = datos.filter(x=>x.Estado==="Vacía").length;
-}
-
-function render(){
-
-    const texto = document.getElementById("buscar").value.toLowerCase();
-
-    let html = "";
-
-    datos
-    .filter(item=>{
-
-        const okLote = String(item.LOTE).toLowerCase().includes(texto);
-        const okEstado = !filtroEstado || item.Estado === filtroEstado;
-
-        return okLote && okEstado;
-    })
-
-    .forEach(item=>{
-
-        let accion = "";
-
-        if(item.Estado==="En Almacén"){
-            accion = `<button class="btn btn-salida" onclick="salida('${item.LOTE}')">Salida</button>`;
-        }
-
-        if(item.Estado==="Fuera"){
-            accion = `<button class="btn btn-entrada" onclick="entrada('${item.LOTE}')">Entrada</button>`;
-        }
-
-        html += `
-        <tr>
-
-            <td>${item.LOTE}</td>
-            <td>${item.PRODUCTO}</td>
-            <td>${item.DESCRIPCION}</td>
-            <td>${item.METROS}</td>
-
-            <td class="estado">${item.Estado}</td>
-
-            <td>${accion}</td>
-
-        </tr>`;
-    });
-
-    document.getElementById("tabla").innerHTML = html;
-}
-
-async function actualizarEstado(lote, estado){
-
-    await fetch(API,{
-        method:"POST",
-        body:JSON.stringify({lote,estado})
-    });
-
-    cargar();
-}
-
-async function salida(lote){
-    if(confirm("¿Salida del lote "+lote+"?")){
-        actualizarEstado(lote,"Fuera");
-    }
-}
-
-async function entrada(lote){
-
-    const op = prompt("1 = En Almacén\n2 = Vacía");
-
-    if(op==="1") actualizarEstado(lote,"En Almacén");
-    if(op==="2") actualizarEstado(lote,"Vacía");
-}
-
-document.getElementById("buscar").addEventListener("input",render);
-
-cargar();
-
-</script>
+<script src="js/app.js"></script>
 
 </body>
+
 </html>
