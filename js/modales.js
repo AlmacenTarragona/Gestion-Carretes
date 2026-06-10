@@ -339,7 +339,7 @@ async function verHistorial(id) {
                 <td>${m.METROS_RESTANTES || ""}</td>
 
             </tr>
-        `;
+        ;
 
     });
 
@@ -388,7 +388,7 @@ async function verHistorial(id) {
             </button>
 
         </div>
-    `;
+    ;
 
     abrirModal(html);
 }
