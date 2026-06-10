@@ -313,7 +313,7 @@ async function guardarEdicion(id) {
 async function verHistorial(id) {
 
     const movimientos =
-        await obtenerHistorial(id);
+        await obtenerHistorial(id) || [];
 
     let rows = "";
 
@@ -321,28 +321,30 @@ async function verHistorial(id) {
 
         rows += `
             <tr>
-
                 <td>${m.FECHA || ""}</td>
-
                 <td>${m.TIPO || ""}</td>
-
                 <td>${m.ACTUACION || ""}</td>
-
                 <td>${m.BRIGADA || ""}</td>
-
                 <td>${m.PI_ANTERIOR || ""}</td>
-
                 <td>${m.PI_NUEVO || ""}</td>
-
                 <td>${m.CONSUMO || 0}</td>
-
                 <td>${m.METROS_RESTANTES || ""}</td>
-
             </tr>
-        ;
+        `;
 
     });
 
+    if (!rows) {
+
+        rows = `
+            <tr>
+                <td colspan="8" style="text-align:center;padding:20px;">
+                    No existen movimientos para este carrete
+                </td>
+            </tr>
+        `;
+
+    }
 
     const html = `
         <h2>📋 Historial de Movimientos</h2>
@@ -352,9 +354,7 @@ async function verHistorial(id) {
             <table style="width:100%;border-collapse:collapse;">
 
                 <thead>
-
                     <tr style="background:#0f172a;color:white;">
-
                         <th>Fecha</th>
                         <th>Tipo</th>
                         <th>Actuación</th>
@@ -363,15 +363,11 @@ async function verHistorial(id) {
                         <th>PI Nue.</th>
                         <th>Consumo</th>
                         <th>Metros</th>
-
                     </tr>
-
                 </thead>
 
                 <tbody>
-
                     ${rows}
-
                 </tbody>
 
             </table>
@@ -380,7 +376,8 @@ async function verHistorial(id) {
 
         <div class="modal-footer">
 
-            <button class="btn btn-primary"
+            <button
+                class="btn btn-primary"
                 onclick="cerrarModal()">
 
                 Cerrar
@@ -388,7 +385,9 @@ async function verHistorial(id) {
             </button>
 
         </div>
-    ;
+    `;
 
     abrirModal(html);
+
+}
 }
