@@ -390,4 +390,4 @@ async function verHistorial(id) {
     abrirModal(html);
 
 }
-}
+
