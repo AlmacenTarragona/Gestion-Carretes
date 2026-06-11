@@ -289,16 +289,25 @@ async function procesarSalida(event, id) {
 
 
 /**
- * ENTRADA (Convertido a Formulario en Modal)
+ * ENTRADA (Formulario con cálculo automático de consumo)
  */
 function entradaUI(id) {
+    // Buscamos el carrete en nuestro array local de 'datos' para saber su PI anterior
+    const carrete = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
+    // Si por lo que sea no tiene PI o no se encuentra, asumimos 0
+    const piAnterior = carrete ? (carrete.PI || 0) : 0;
+
     abrirModal(`
         <h2>Registrar Entrada de Carrete</h2>
-        <form id="formEntrada" onsubmit="procesarEntrada(event, ${id})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+        <form id="formEntrada" onsubmit="procesarEntrada(event, ${id}, ${piAnterior})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
             
+            <div style="background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 14px; color: #475569;">
+                <strong>PI de Salida (Anterior):</strong> ${piAnterior} m
+            </div>
+
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-weight: bold;">PI actual:</label>
-                <input type="text" id="modalPi" required placeholder="Introduce PI" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                <label style="font-weight: bold;">PI actual (Retorno):</label>
+                <input type="number" id="modalPi" required placeholder="Introduce el PI actual con el que vuelve" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -325,24 +334,28 @@ function entradaUI(id) {
 }
 
 /**
- * Procesar envío del formulario de Entrada
+ * Procesar envío del formulario de Entrada y calcular Consumo
  */
-async function procesarEntrada(event, id) {
-    event.preventDefault(); // Evita que recargue la página
+async function procesarEntrada(event, id, piAnterior) {
+    event.preventDefault();
 
-    const pi = document.getElementById("modalPi").value;
+    const piNuevo = Number(document.getElementById("modalPi").value);
     const actuacion = document.getElementById("modalActuacion").value;
     const brigada = document.getElementById("modalBrigada").value;
     const obs = document.getElementById("modalObs").value;
+
+    // Calculamos la diferencia en valor absoluto. Da igual si es (1000 - 800) o (800 - 1000), siempre devolverá 200.
+    const consumoCalculado = Math.abs(Number(piAnterior) - piNuevo);
 
     cerrarModal();
 
     await registrarEntrada({
         id,
-        PI_NUEVO: pi,
+        PI_NUEVO: piNuevo,
         ACTUACION: actuacion,
         BRIGADA: brigada,
         OBSERVACIONES: obs,
+        CONSUMO: consumoCalculado, // Pasamos el consumo calculado automáticamente en positivo
         ESTADO_FINAL: "En Almacén"
     });
 
