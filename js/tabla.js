@@ -242,29 +242,47 @@ async function eliminarCarreteUI(id) {
 
 
 /**
- * SALIDA (Formulario visual simplificado)
+ * Procesar envío de Salida (Encadenando la última PEx del historial)
  */
-function salidaUI(id) {
-    abrirModal(`
-        <h2>Registrar Salida de Carrete</h2>
-        <form id="formSalida" onsubmit="procesarSalida(event, ${id})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
-            
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-weight: bold;">Actuación / Proyecto:</label>
-                <input type="text" id="modalActuacion" required placeholder="Ej. Proyecto Norte" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
-            </div>
+async function procesarSalida(event, id) {
+    event.preventDefault();
 
-            <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-weight: bold;">Brigada:</label>
-                <input type="text" id="modalBrigada" required placeholder="Ej. Brigada A" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
-            </div>
+    // 1. Buscamos datos base en el stock
+    const carrete = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
+    const metrosTotales = carrete ? Number(carrete.METROS || 0) : 0;
 
-            <div class="modal-footer" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
-                <button type="button" class="btn btn-danger" onclick="cerrarModal()">Cancelar</button>
-                <button type="submit" class="btn btn-success">Confirmar Salida</button>
-            </div>
-        </form>
-    `);
+    // 2. Extraemos la última PEx guardada en el historial de movimientos
+    const movimientos = await obtenerHistorial(id) || [];
+    
+    let ultimoPexReal = 0;
+    if (movimientos.length > 0) {
+        const ultimoMovimiento = movimientos[movimientos.length - 1];
+        ultimoPexReal = Number(ultimoMovimiento.PI_NUEVO || 0);
+    } else {
+        ultimoPexReal = carrete ? Number(carrete.PI || 0) : 0;
+    }
+    
+    // Calculamos los metros restantes reales en base a la última PEx
+    const metrosRestantesActuales = Math.abs(metrosTotales - ultimoPexReal);
+
+    const actuacion = document.getElementById("modalActuacion").value;
+    const brigada = document.getElementById("modalBrigada").value;
+
+    cerrarModal();
+
+    // 3. Enviamos los datos encadenados a la hoja de cálculo
+    await registrarSalida({
+        id,
+        ACTUACION: actuacion,
+        BRIGADA: brigada,
+        PI_ANTERIOR: ultimoPexReal,            // La última PEx guardada pasa a ser el punto inicial
+        PI_NUEVO: ultimoPexReal,               // Se mantiene igual hasta el retorno
+        CONSUMO: 0,                            // En la salida no hay consumo de almacén
+        METROS_RESTANTES: metrosRestantesActuales, 
+        ESTADO_FINAL: "En Obra"          
+    });
+
+    await recargarSistema();
 }
 
 /**
@@ -303,16 +321,27 @@ async function procesarSalida(event, id) {
 }
 
 /**
- * ENTRADA (Con panel de estado actual: PEx Anterior, Ubicación y cálculos en vivo)
+ * ENTRADA (Recuperando el último PEx registrado en el historial)
  */
-function entradaUI(id) {
-    // 1. Buscamos el carrete en el inventario general (datos)
+async function entradaUI(id) {
+    // 1. Buscamos el carrete en el inventario general para datos base (como ubicación o metros totales)
     const carrete = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
+    const metrosTotales = carrete ? Number(carrete.METROS || 0) : 0;
+    const ubicacionActual = carrete ? (carrete.UBICACION || "Sin ubicación") : "Sin ubicación";
+
+    // 2. Consultamos el historial de la hoja para obtener el último movimiento real
+    const movimientos = await obtenerHistorial(id) || [];
     
-    // 2. Extraemos los valores actuales de la fila de stock
-    const pexAnterior = carrete ? (carrete.PI || 0) : 0; 
-    const ubicacionActual = carrete ? (carrete.UBICACION || "Sin ubicación") : "Sin ubicación"; // Ajusta 'UBICACION' si en tu hoja se llama diferente (ej. UBICACIÓN o ZONA)
-    const metrosTotales = carrete ? (carrete.METROS || 0) : 0;
+    let pexAnterior = 0;
+    if (movimientos.length > 0) {
+        // Ordenamos o tomamos el último registro introducido en la hoja
+        const ultimoMovimiento = movimientos[movimientos.length - 1];
+        // Cogemos el PI_NUEVO de ese último registro
+        pexAnterior = Number(ultimoMovimiento.PI_NUEVO || 0);
+    } else {
+        // Si no tiene movimientos previos, partimos del valor por defecto del stock
+        pexAnterior = carrete ? Number(carrete.PI || 0) : 0;
+    }
 
     abrirModal(`
         <h2>Registrar Entrada de Carrete</h2>
@@ -323,12 +352,12 @@ function entradaUI(id) {
                     Estado Actual del Carrete
                 </div>
                 <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
-                    <div><strong>PEx Salida (Anterior):</strong> <span style="color: #0f172a;">${pexAnterior} m</span></div>
+                    <div><strong>PEx Actual (Último):</strong> <span style="color: #0f172a; font-weight: bold;">${pexAnterior}</span></div>
                     <div><strong>Ubicación Actual:</strong> <span style="background: #e2e8f0; padding: 2px 6px; border-radius: 4px; font-weight: bold; color: #1e293b;">${ubicacionActual}</span></div>
                 </div>
                 <div style="border-top: 1px dashed #e2e8f0; margin-top: 4px; padding-top: 6px; display: grid; grid-template-columns: 1fr 1fr; gap: 8px;">
                     <div><strong>PEx Retorno (Nuevo):</strong> <span id="previewPexNuevo" style="font-weight: bold; color: #0284c7;">--</span></div>
-                    <div><strong>Consumo Calculado:</strong> <span id="previewConsumo" style="font-weight: bold; color: #16a34a;">0 m</span></div>
+                    <div><strong>Consumo Calculado:</strong> <span id="previewConsumo" style="font-weight: bold; color: #16a34a;">0</span></div>
                 </div>
             </div>
 
@@ -350,7 +379,7 @@ function entradaUI(id) {
 
             <div style="display: flex; flex-direction: column; gap: 4px;">
                 <label style="font-weight: bold;">Observaciones:</label>
-                <textarea id="modalObs" rows="3" placeholder="Notas adicionales..." style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; resize: vertical Orion;"></textarea>
+                <textarea id="modalObs" rows="3" placeholder="Notas adicionales..." style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; resize: vertical;"></textarea>
             </div>
 
             <div class="modal-footer" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
