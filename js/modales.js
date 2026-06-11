@@ -305,95 +305,86 @@ async function guardarEdicion(id) {
 
 }
 /**
- * =====================================================
- * HISTORIAL DE MOVIMIENTOS
- * =====================================================
+ * HISTORIAL - Carga la tabla de movimientos calculando remanentes reales decrecientes
  */
-
 async function verHistorial(id) {
-
-    const movimientos =
-        await obtenerHistorial(id) || [];
-
-    // 1. Buscamos el carrete en el inventario general para saber sus metros totales de fábrica
-    const carreteOriginal = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
-    // Si por lo que sea no se encuentra el dato, usamos 0 para evitar errores
-    const metrosTotalesCarrete = carreteOriginal ? Number(carreteOriginal.METROS || 0) : 0;
+    const movimientos = await obtenerHistorial(id) || [];
+    
+    // CORRECCIÓN 1: Búsqueda segura eliminando espacios y convirtiendo a string para evitar fallos de tipo de datos
+    const carreteOriginal = datos.find(x => 
+        String(x["NUMERO REGISTRO"]).trim() === String(id).trim()
+    );
+    
+    // Si no encuentra el carrete base por ID, usamos un fallback basado en el lote del historial para no romper la UI
+    const metrosTotalesCarrete = carreteOriginal 
+        ? Number(carreteOriginal.METROS || 0) 
+        : (movimientos.length > 0 ? Number(movimientos[0].METROS_RESTANTES || 0) : 0);
 
     let rows = "";
 
     movimientos.forEach(m => {
-
+        // Formateo seguro de la fecha
         const fechaLimpia = m.FECHA 
             ? new Date(m.FECHA).toLocaleString('es-ES', { 
-                day: '2-digit', 
-                month: '2-digit', 
-                year: 'numeric', 
-                hour: '2-digit', 
-                minute: '2-digit' 
+                day: '2-digit', month: '2-digit', year: 'numeric', 
+                hour: '2-digit', minute: '2-digit' 
               })
             : "";
 
-        // 2. Calculamos los metros reales que quedan en el carrete usando la fórmula en valor absoluto
-        // Restamos de los metros totales lo que marca el PEx nuevo (m.PI_NUEVO)
-        const pexActual = Number(m.PI_NUEVO || 0);
-        const metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
+        // CORRECCIÓN 2: Controlar celdas vacías en las filas de SALIDA
+        // Si es una SALIDA y las columnas de PEx de la hoja están vacías, heredamos los metros restantes de la fila
+        let pexAnteriorMostrar = m.PI_ANTERIOR !== undefined && m.PI_ANTERIOR !== "" ? m.PI_ANTERIOR : "--";
+        let pexNuevoMostrar = m.PI_NUEVO !== undefined && m.PI_NUEVO !== "" ? m.PI_NUEVO : "--";
+        
+        let metrosCalculados = 0;
+        if (m.TIPO === "SALIDA" && (m.PI_NUEVO === "" || m.PI_NUEVO === undefined)) {
+            // Si la hoja no tiene PEx en la salida, el remanente real es el que se guardó en la columna METROS_RESTANTES
+            metrosCalculados = Number(m.METROS_RESTANTES || metrosTotalesCarrete);
+        } else {
+            // Si es ENTRADA o tiene PEx, aplicamos la fórmula lógica: Total - Posición actual del cable
+            const pexActual = Number(m.PI_NUEVO || 0);
+            metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
+        }
 
         rows += `
-            <tr>
-                <td>${fechaLimpia}</td>
-                <td>${m.TIPO || ""}</td>
-                <td>${m.ACTUACION || ""}</td>
-                <td>${m.BRIGADA || ""}</td>
-                <td>${m.PI_ANTERIOR || ""}</td> 
-                <td>${m.PI_NUEVO || ""}</td>    
-                <td>${m.CONSUMO || 0}</td>
-                <td>${metrosCalculados}</td> </tr>
+            <tr style="border-bottom: 1px solid #e2e8f0;">
+                <td style="padding: 10px 8px;">${fechaLimpia}</td>
+                <td style="padding: 10px 8px;"><span class="badge ${m.TIPO === 'ENTRADA' ? 'badge-almacen' : 'badge-fuera'}">${m.TIPO || ""}</span></td>
+                <td style="padding: 10px 8px;">${m.ACTUACION || ""}</td>
+                <td style="padding: 10px 8px;">${m.BRIGADA || ""}</td>
+                <td style="padding: 10px 8px; font-weight: 500;">${pexAnteriorMostrar}</td> 
+                <td style="padding: 10px 8px; font-weight: bold; color: #0284c7;">${pexNuevoMostrar}</td>    
+                <td style="padding: 10px 8px; color: #16a34a; font-weight: 500;">${m.CONSUMO ?? 0} m</td>
+                <td style="padding: 10px 8px; font-weight: bold; color: #1e293b;">${metrosCalculados} m</td>
+            </tr>
         `;
-
     });
 
     if (!rows) {
-
-        rows = `
-            <tr>
-                <td colspan="8" style="text-align:center;padding:20px;">
-                    No existen movimientos para este carrete
-                </td>
-            </tr>
-        `;
-
+        rows = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">⚠️ No se encontraron registros o movimientos para este carrete en la hoja de cálculo.</td></tr>`;
     }
 
     const html = `
         <h2>📋 Historial de Movimientos</h2>
-
-        <div style="max-height:60vh;overflow:auto;">
-
-            <table style="width:100%;border-collapse:collapse;">
-
+        <div style="max-height:60vh;overflow-y:auto;margin-top:15px;border: 1px solid #e2e8f0; border-radius: 8px;">
+            <table style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
                 <thead>
-                    <tr style="background:#0f172a;color:white;">
-                        <th>Fecha</th>
-                        <th>Tipo</th>
-                        <th>Actuación</th>
-                        <th>Brigada</th>
-                        <th>PEx Ant.</th> 
-                        <th>PEx Nue.</th> 
-                        <th>Consumo</th>
-                        <th>Metros</th> </tr>
+                    <tr style="background:#0f172a;color:white;position:sticky;top:0;">
+                        <th style="padding: 12px 8px;">Fecha</th>
+                        <th style="padding: 12px 8px;">Tipo</th>
+                        <th style="padding: 12px 8px;">Actuación</th>
+                        <th style="padding: 12px 8px;">Brigada</th>
+                        <th style="padding: 12px 8px;">PEx Ant.</th> 
+                        <th style="padding: 12px 8px;">PEx Nue.</th> 
+                        <th style="padding: 12px 8px;">Consumo</th>
+                        <th style="padding: 12px 8px;">Metros Rem.</th>
+                    </tr>
                 </thead>
-
-                <tbody>
-                    ${rows}
-                </tbody>
-
+                <tbody>${rows}</tbody>
             </table>
-
         </div>
-
-        <div class="modal-footer">
-            <button class="btn btn-primary" onclick="cerrarModal()">Cerrar</button>
+        <div class="modal-footer" style="margin-top:15px;display:flex;justify-content:flex-end;">
+            <button class="btn btn-primary" onclick="cerrarModal()">Cerrar Historial</button>
         </div>
     `;
 
