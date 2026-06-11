@@ -305,25 +305,23 @@ async function guardarEdicion(id) {
 
 }
 /**
- * HISTORIAL - Carga la tabla de movimientos calculando remanentes reales decrecientes
+ * HISTORIAL - Renderiza movimientos calculando remanentes reales
+ * Soporta de forma dinámica el formato histórico antiguo y el flujo nuevo simplificado.
  */
 async function verHistorial(id) {
     const movimientos = await obtenerHistorial(id) || [];
     
-    // CORRECCIÓN 1: Búsqueda segura eliminando espacios y convirtiendo a string para evitar fallos de tipo de datos
+    // Búsqueda segura de datos maestros eliminando espacios
     const carreteOriginal = datos.find(x => 
         String(x["NUMERO REGISTRO"]).trim() === String(id).trim()
     );
     
-    // Si no encuentra el carrete base por ID, usamos un fallback basado en el lote del historial para no romper la UI
-    const metrosTotalesCarrete = carreteOriginal 
-        ? Number(carreteOriginal.METROS || 0) 
-        : (movimientos.length > 0 ? Number(movimientos[0].METROS_RESTANTES || 0) : 0);
+    const metrosTotalesCarrete = carreteOriginal ? Number(carreteOriginal.METROS || 0) : 0;
 
     let rows = "";
 
     movimientos.forEach(m => {
-        // Formateo seguro de la fecha
+        // Formatear la fecha de manera limpia
         const fechaLimpia = m.FECHA 
             ? new Date(m.FECHA).toLocaleString('es-ES', { 
                 day: '2-digit', month: '2-digit', year: 'numeric', 
@@ -331,19 +329,32 @@ async function verHistorial(id) {
               })
             : "";
 
-        // CORRECCIÓN 2: Controlar celdas vacías en las filas de SALIDA
-        // Si es una SALIDA y las columnas de PEx de la hoja están vacías, heredamos los metros restantes de la fila
-        let pexAnteriorMostrar = m.PI_ANTERIOR !== undefined && m.PI_ANTERIOR !== "" ? m.PI_ANTERIOR : "--";
-        let pexNuevoMostrar = m.PI_NUEVO !== undefined && m.PI_NUEVO !== "" ? m.PI_NUEVO : "--";
+        // Identificar si la fila tiene datos de PEx definidos
+        const tienePexNuevo = m.PI_NUEVO !== undefined && m.PI_NUEVO !== null && String(m.PI_NUEVO).trim() !== "";
+        
+        let pexAnteriorMostrar = m.PI_ANTERIOR !== undefined && String(m.PI_ANTERIOR).trim() !== "" ? m.PI_ANTERIOR : "--";
+        let pexNuevoMostrar = tienePexNuevo ? m.PI_NUEVO : "--";
         
         let metrosCalculados = 0;
-        if (m.TIPO === "SALIDA" && (m.PI_NUEVO === "" || m.PI_NUEVO === undefined)) {
-            // Si la hoja no tiene PEx en la salida, el remanente real es el que se guardó en la columna METROS_RESTANTES
-            metrosCalculados = Number(m.METROS_RESTANTES || metrosTotalesCarrete);
+
+        // LÓGICA DE CÁLCULO DE METROS REMANENTES
+        if (m.TIPO === "SALIDA" && !tienePexNuevo) {
+            // Formato Nuevo: Salida simplificada sin PEx -> Hereda directamente de la columna METROS_RESTANTES
+            metrosCalculados = m.METROS_RESTANTES !== undefined && m.METROS_RESTANTES !== "" 
+                ? Number(m.METROS_RESTANTES) 
+                : metrosTotalesCarrete;
         } else {
-            // Si es ENTRADA o tiene PEx, aplicamos la fórmula lógica: Total - Posición actual del cable
-            const pexActual = Number(m.PI_NUEVO || 0);
-            metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
+            // Formato Viejo o ENTRADAS: Usamos la diferencia respecto a la posición grabada en el PEx Nuevo
+            const pexActual = tienePexNuevo ? Number(m.PI_NUEVO) : 0;
+            
+            if (metrosTotalesCarrete > 0) {
+                metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
+            } else {
+                // Fallback de contingencia si no se encuentra el registro maestro del carrete
+                metrosCalculados = m.METROS_RESTANTES !== undefined && m.METROS_RESTANTES !== "" 
+                    ? Number(m.METROS_RESTANTES) 
+                    : 0;
+            }
         }
 
         rows += `
