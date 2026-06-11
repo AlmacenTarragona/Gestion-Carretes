@@ -242,7 +242,7 @@ async function eliminarCarreteUI(id) {
 
 
 /**
- * SALIDA (Convertido a Formulario en Modal)
+ * SALIDA (Formulario visual simplificado)
  */
 function salidaUI(id) {
     abrirModal(`
@@ -268,25 +268,39 @@ function salidaUI(id) {
 }
 
 /**
- * Procesar envío del formulario de Salida
+ * Procesar envío de Salida (Arrastrando los datos actuales a la hoja)
  */
 async function procesarSalida(event, id) {
-    event.preventDefault(); // Evita que recargue la página
+    event.preventDefault();
+
+    // 1. Buscamos el estado actual del carrete en nuestro inventario local
+    const carrete = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
+    
+    const piActual = carrete ? (carrete.PI || 0) : 0;
+    const metrosTotales = carrete ? Number(carrete.METROS || 0) : 0;
+    
+    // Calculamos cuántos metros le quedan en este momento antes de salir
+    const metrosRestantesActuales = Math.abs(metrosTotales - Number(piActual));
 
     const actuacion = document.getElementById("modalActuacion").value;
     const brigada = document.getElementById("modalBrigada").value;
 
     cerrarModal();
 
+    // 2. Enviamos el registro completo a la hoja de cálculo
     await registrarSalida({
         id,
         ACTUACION: actuacion,
-        BRIGADA: brigada
+        BRIGADA: brigada,
+        PI_ANTERIOR: piActual,            // Guardamos el punto donde empieza a salir
+        PI_NUEVO: piActual,               // En la salida, el nuevo sigue siendo el mismo hasta que vuelva
+        CONSUMO: 0,                       // En la salida el consumo de almacén es 0
+        METROS_RESTANTES: metrosRestantesActuales, // Dejamos constancia de los metros con los que viaja
+        ESTADO_FINAL: "En Obra"          // O el estado que maneje tu sistema para las salidas
     });
 
     await recargarSistema();
 }
-
 
 /**
  * ENTRADA (Con panel de estado actual: PEx Anterior, Ubicación y cálculos en vivo)
