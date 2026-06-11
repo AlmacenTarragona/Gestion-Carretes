@@ -289,25 +289,26 @@ async function procesarSalida(event, id) {
 
 
 /**
- * ENTRADA (Formulario con cálculo automático de consumo)
+ * ENTRADA (Visual dinámico con PEx Anterior, PEx Nuevo y Consumo en vivo)
  */
 function entradaUI(id) {
-    // Buscamos el carrete en nuestro array local de 'datos' para saber su PI anterior
     const carrete = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
-    // Si por lo que sea no tiene PI o no se encuentra, asumimos 0
-    const piAnterior = carrete ? (carrete.PI || 0) : 0;
+    const piAnterior = carrete ? (carrete.PI || 0) : 0; 
 
     abrirModal(`
         <h2>Registrar Entrada de Carrete</h2>
         <form id="formEntrada" onsubmit="procesarEntrada(event, ${id}, ${piAnterior})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
             
-            <div style="background: #f1f5f9; padding: 10px; border-radius: 6px; font-size: 14px; color: #475569;">
-                <strong>PI de Salida (Anterior):</strong> ${piAnterior} m
+            <div style="background: #f1f5f9; padding: 12px; border-radius: 8px; font-size: 14px; color: #334155; display: flex; flex-direction: column; gap: 6px; border: 1px solid #e2e8f0;">
+                <div><strong>PEx Salida (Anterior):</strong> <span>${piAnterior}</span> m</div>
+                <div><strong>PEx Retorno (Nuevo):</strong> <span id="previewPexNuevo" style="font-weight: bold; color: #0284c7;">--</span> m</div>
+                <div><strong>Consumo Calculado:</strong> <span id="previewConsumo" style="font-weight: bold; color: #16a34a;">0</span> m</div>
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 4px;">
-                <label style="font-weight: bold;">PI actual (Retorno):</label>
-                <input type="number" id="modalPi" required placeholder="Introduce el PI actual con el que vuelve" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+                <label style="font-weight: bold;">PEx actual (Introduce el dato de retorno):</label>
+                <input type="number" id="modalPi" required placeholder="Ej. 750" style="padding: 10px; border: 1px solid #ccc; border-radius: 5px; font-size: 15px;"
+                       oninput="calcularConsumoEnVivo(this.value, ${piAnterior})">
             </div>
 
             <div style="display: flex; flex-direction: column; gap: 4px;">
@@ -331,6 +332,27 @@ function entradaUI(id) {
             </div>
         </form>
     `);
+}
+
+/**
+ * Función auxiliar para actualizar los textos del modal al escribir
+ */
+function calcularConsumoEnVivo(valorInput, piAnterior) {
+    const previewPexNuevo = document.getElementById("previewPexNuevo");
+    const previewConsumo = document.getElementById("previewConsumo");
+
+    if (!valorInput || isNaN(valorInput)) {
+        previewPexNuevo.innerText = "--";
+        previewConsumo.innerText = "0";
+        return;
+    }
+
+    const piNuevo = Number(valorInput);
+    const consumo = Math.abs(Number(piAnterior) - piNuevo);
+
+    // Actualizamos la interfaz del modal al vuelo
+    previewPexNuevo.innerText = piNuevo;
+    previewConsumo.innerText = consumo;
 }
 
 /**
