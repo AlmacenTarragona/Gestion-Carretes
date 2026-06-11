@@ -199,7 +199,6 @@ async function procesarSalida(event, id) {
 
     await recargarSistema();
 }
-
 /**
  * ENTRADA - Interfaz con Panel Informativo y cálculo en vivo
  */
