@@ -305,23 +305,33 @@ async function guardarEdicion(id) {
 
 }
 /**
- * HISTORIAL - Renderiza movimientos calculando remanentes reales
- * Soporta de forma dinámica el formato histórico antiguo y el flujo nuevo simplificado.
+ * HISTORIAL - Versión de Depuración con Título Dinámico y Trazas de Consola
  */
 async function verHistorial(id) {
-    const movimientos = await obtenerHistorial(id) || [];
+    console.log(`%c=== INICIANDO DEPURACIÓN DE HISTORIAL (ID: ${id}) ===`, 'background: #0f172a; color: #38bdf8; padding: 4px; font-weight: bold;');
     
-    // Búsqueda segura de datos maestros eliminando espacios
+    const movimientos = await obtenerHistorial(id) || [];
+    console.log("Movimientos brutos recuperados de la hoja:", movimientos);
+    
+    // Búsqueda segura del carrete maestro
     const carreteOriginal = datos.find(x => 
         String(x["NUMERO REGISTRO"]).trim() === String(id).trim()
     );
     
+    console.log("Carrete maestro encontrado en memoria:", carreteOriginal);
+
     const metrosTotalesCarrete = carreteOriginal ? Number(carreteOriginal.METROS || 0) : 0;
+    // Identificar el nombre del lote para el título (buscando en el maestro o en el primer movimiento)
+    const nombreLote = carreteOriginal?.LOTE || (movimientos.length > 0 ? movimientos[0].LOTE : "Desconocido");
+    
+    console.log(`Metros iniciales de fábrica del carrete: ${metrosTotalesCarrete} m`);
 
     let rows = "";
 
-    movimientos.forEach(m => {
-        // Formatear la fecha de manera limpia
+    movimientos.forEach((m, index) => {
+        console.log(`%c--- Procesando Fila [${index + 1}] ---`, 'color: #eab308; font-weight: bold;');
+        console.log(`Datos crudos de la fila -> Tipo: ${m.TIPO}, Actuación: ${m.ACTUACION}, PI_Ant: ${m.PI_ANTERIOR}, PI_Nue: ${m.PI_NUEVO}, Metros_Rest: ${m.METROS_RESTANTES}`);
+
         const fechaLimpia = m.FECHA 
             ? new Date(m.FECHA).toLocaleString('es-ES', { 
                 day: '2-digit', month: '2-digit', year: 'numeric', 
@@ -329,33 +339,38 @@ async function verHistorial(id) {
               })
             : "";
 
-        // Identificar si la fila tiene datos de PEx definidos
+        // Control estricto de celdas vacías o nulas
         const tienePexNuevo = m.PI_NUEVO !== undefined && m.PI_NUEVO !== null && String(m.PI_NUEVO).trim() !== "";
-        
+        console.log(`¿La celda PI_NUEVO tiene datos reales?: ${tienePexNuevo ? "SÍ" : "NO"}`);
+
         let pexAnteriorMostrar = m.PI_ANTERIOR !== undefined && String(m.PI_ANTERIOR).trim() !== "" ? m.PI_ANTERIOR : "--";
         let pexNuevoMostrar = tienePexNuevo ? m.PI_NUEVO : "--";
         
         let metrosCalculados = 0;
+        let estrategiaCalculo = "";
 
-        // LÓGICA DE CÁLCULO DE METROS REMANENTES
+        // EVALUACIÓN DE ESTRATEGIA DE CÁLCULO
         if (m.TIPO === "SALIDA" && !tienePexNuevo) {
-            // Formato Nuevo: Salida simplificada sin PEx -> Hereda directamente de la columna METROS_RESTANTES
+            estrategiaCalculo = "Formato Nuevo (SALIDA simplificada sin PEx). Extrayendo directamente de METROS_RESTANTES.";
             metrosCalculados = m.METROS_RESTANTES !== undefined && m.METROS_RESTANTES !== "" 
                 ? Number(m.METROS_RESTANTES) 
                 : metrosTotalesCarrete;
         } else {
-            // Formato Viejo o ENTRADAS: Usamos la diferencia respecto a la posición grabada en el PEx Nuevo
+            estrategiaCalculo = "Formato Viejo o ENTRADA. Calculando: Abs(Metros Fábrica - PI_NUEVO).";
             const pexActual = tienePexNuevo ? Number(m.PI_NUEVO) : 0;
             
             if (metrosTotalesCarrete > 0) {
                 metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
             } else {
-                // Fallback de contingencia si no se encuentra el registro maestro del carrete
+                estrategiaCalculo += " -> ¡ALERTA! Metros de fábrica es 0 o indefinido. Usando METROS_RESTANTES como plan B.";
                 metrosCalculados = m.METROS_RESTANTES !== undefined && m.METROS_RESTANTES !== "" 
                     ? Number(m.METROS_RESTANTES) 
                     : 0;
             }
         }
+
+        console.log(`Estrategia aplicada: ${estrategiaCalculo}`);
+        console.log(`%cResultado final calculado para esta fila: ${metrosCalculados} m`, 'color: #16a34a; font-weight: bold;');
 
         rows += `
             <tr style="border-bottom: 1px solid #e2e8f0;">
@@ -375,8 +390,9 @@ async function verHistorial(id) {
         rows = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">⚠️ No se encontraron registros o movimientos para este carrete en la hoja de cálculo.</td></tr>`;
     }
 
+    // TÍTULO MODIFICADO: Ahora incluye dinámicamente el nombre del Lote y el ID de Registro
     const html = `
-        <h2>📋 Historial de Movimientos</h2>
+        <h2>📋 Historial: Lote ${nombreLote} <span style="font-size: 14px; color: #64748b; font-weight: normal;">(Registro #${id})</span></h2>
         <div style="max-height:60vh;overflow-y:auto;margin-top:15px;border: 1px solid #e2e8f0; border-radius: 8px;">
             <table style="width:100%;border-collapse:collapse;text-align:left;font-size:13px;">
                 <thead>
@@ -400,4 +416,5 @@ async function verHistorial(id) {
     `;
 
     abrirModal(html);
+    console.log(`%c=== FIN DE LA DEPURACIÓN (ID: ${id}) ===`, 'background: #0f172a; color: #34d399; padding: 4px; font-weight: bold;');
 }
