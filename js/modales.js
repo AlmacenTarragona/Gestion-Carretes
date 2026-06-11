@@ -315,11 +315,15 @@ async function verHistorial(id) {
     const movimientos =
         await obtenerHistorial(id) || [];
 
+    // 1. Buscamos el carrete en el inventario general para saber sus metros totales de fábrica
+    const carreteOriginal = datos.find(x => Number(x["NUMERO REGISTRO"]) === Number(id));
+    // Si por lo que sea no se encuentra el dato, usamos 0 para evitar errores
+    const metrosTotalesCarrete = carreteOriginal ? Number(carreteOriginal.METROS || 0) : 0;
+
     let rows = "";
 
     movimientos.forEach(m => {
 
-        // Convertimos la fecha ISO a formato local legible (DD/MM/AAAA HH:MM)
         const fechaLimpia = m.FECHA 
             ? new Date(m.FECHA).toLocaleString('es-ES', { 
                 day: '2-digit', 
@@ -330,17 +334,21 @@ async function verHistorial(id) {
               })
             : "";
 
+        // 2. Calculamos los metros reales que quedan en el carrete usando la fórmula en valor absoluto
+        // Restamos de los metros totales lo que marca el PEx nuevo (m.PI_NUEVO)
+        const pexActual = Number(m.PI_NUEVO || 0);
+        const metrosCalculados = Math.abs(metrosTotalesCarrete - pexActual);
+
         rows += `
             <tr>
                 <td>${fechaLimpia}</td>
                 <td>${m.TIPO || ""}</td>
                 <td>${m.ACTUACION || ""}</td>
                 <td>${m.BRIGADA || ""}</td>
-                <td>${m.PI_ANTERIOR || ""}</td>
-                <td>${m.PI_NUEVO || ""}</td>
+                <td>${m.PI_ANTERIOR || ""}</td> 
+                <td>${m.PI_NUEVO || ""}</td>    
                 <td>${m.CONSUMO || 0}</td>
-                <td>${m.METROS_RESTANTES || ""}</td>
-            </tr>
+                <td>${metrosCalculados}</td> </tr>
         `;
 
     });
@@ -370,11 +378,10 @@ async function verHistorial(id) {
                         <th>Tipo</th>
                         <th>Actuación</th>
                         <th>Brigada</th>
-                        <th>PI Ant.</th>
-                        <th>PI Nue.</th>
+                        <th>PEx Ant.</th> 
+                        <th>PEx Nue.</th> 
                         <th>Consumo</th>
-                        <th>Metros</th>
-                    </tr>
+                        <th>Metros</th> </tr>
                 </thead>
 
                 <tbody>
@@ -386,18 +393,9 @@ async function verHistorial(id) {
         </div>
 
         <div class="modal-footer">
-
-            <button
-                class="btn btn-primary"
-                onclick="cerrarModal()">
-
-                Cerrar
-
-            </button>
-
+            <button class="btn btn-primary" onclick="cerrarModal()">Cerrar</button>
         </div>
     `;
 
     abrirModal(html);
-
 }
