@@ -319,9 +319,20 @@ async function verHistorial(id) {
 
     movimientos.forEach(m => {
 
+        // Convertimos la fecha ISO a formato local legible (DD/MM/AAAA HH:MM)
+        const fechaLimpia = m.FECHA 
+            ? new Date(m.FECHA).toLocaleString('es-ES', { 
+                day: '2-digit', 
+                month: '2-digit', 
+                year: 'numeric', 
+                hour: '2-digit', 
+                minute: '2-digit' 
+              })
+            : "";
+
         rows += `
             <tr>
-                <td>${m.FECHA || ""}</td>
+                <td>${fechaLimpia}</td>
                 <td>${m.TIPO || ""}</td>
                 <td>${m.ACTUACION || ""}</td>
                 <td>${m.BRIGADA || ""}</td>
@@ -390,4 +401,3 @@ async function verHistorial(id) {
     abrirModal(html);
 
 }
-
