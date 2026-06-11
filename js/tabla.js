@@ -242,57 +242,109 @@ async function eliminarCarreteUI(id) {
 
 
 /**
- * SALIDA
+ * SALIDA (Convertido a Formulario en Modal)
  */
-async function salidaUI(id) {
+function salidaUI(id) {
+    abrirModal(`
+        <h2>Registrar Salida de Carrete</h2>
+        <form id="formSalida" onsubmit="procesarSalida(event, ${id})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">Actuación / Proyecto:</label>
+                <input type="text" id="modalActuacion" required placeholder="Ej. Proyecto Norte" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
 
-    const actuacion =
-        prompt("Actuación / Proyecto");
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">Brigada:</label>
+                <input type="text" id="modalBrigada" required placeholder="Ej. Brigada A" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
 
-    const brigada =
-        prompt("Brigada");
+            <div class="modal-footer" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-danger" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-success">Confirmar Salida</button>
+            </div>
+        </form>
+    `);
+}
+
+/**
+ * Procesar envío del formulario de Salida
+ */
+async function procesarSalida(event, id) {
+    event.preventDefault(); // Evita que recargue la página
+
+    const actuacion = document.getElementById("modalActuacion").value;
+    const brigada = document.getElementById("modalBrigada").value;
+
+    cerrarModal();
 
     await registrarSalida({
-
         id,
         ACTUACION: actuacion,
         BRIGADA: brigada
-
     });
 
     await recargarSistema();
-
 }
 
 
 /**
- * ENTRADA
+ * ENTRADA (Convertido a Formulario en Modal)
  */
-async function entradaUI(id) {
+function entradaUI(id) {
+    abrirModal(`
+        <h2>Registrar Entrada de Carrete</h2>
+        <form id="formEntrada" onsubmit="procesarEntrada(event, ${id})" style="display: flex; flex-direction: column; gap: 12px; margin-top: 15px;">
+            
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">PI actual:</label>
+                <input type="text" id="modalPi" required placeholder="Introduce PI" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
 
-    const pi =
-        prompt("PI actual");
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">Actuación / Proyecto:</label>
+                <input type="text" id="modalActuacion" required placeholder="Ej. Proyecto Norte" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
 
-    const actuacion =
-        prompt("Actuación / Proyecto");
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">Brigada:</label>
+                <input type="text" id="modalBrigada" required placeholder="Ej. Brigada A" style="padding: 8px; border: 1px solid #ccc; border-radius: 5px;">
+            </div>
 
-    const brigada =
-        prompt("Brigada");
+            <div style="display: flex; flex-direction: column; gap: 4px;">
+                <label style="font-weight: bold;">Observaciones:</label>
+                <textarea id="modalObs" rows="3" placeholder="Notas adicionales..." style="padding: 8px; border: 1px solid #ccc; border-radius: 5px; resize: vertical;"></textarea>
+            </div>
 
-    const obs =
-        prompt("Observaciones");
+            <div class="modal-footer" style="margin-top: 15px; display: flex; gap: 10px; justify-content: flex-end;">
+                <button type="button" class="btn btn-danger" onclick="cerrarModal()">Cancelar</button>
+                <button type="submit" class="btn btn-success">Confirmar Entrada</button>
+            </div>
+        </form>
+    `);
+}
+
+/**
+ * Procesar envío del formulario de Entrada
+ */
+async function procesarEntrada(event, id) {
+    event.preventDefault(); // Evita que recargue la página
+
+    const pi = document.getElementById("modalPi").value;
+    const actuacion = document.getElementById("modalActuacion").value;
+    const brigada = document.getElementById("modalBrigada").value;
+    const obs = document.getElementById("modalObs").value;
+
+    cerrarModal();
 
     await registrarEntrada({
-
         id,
         PI_NUEVO: pi,
         ACTUACION: actuacion,
         BRIGADA: brigada,
         OBSERVACIONES: obs,
         ESTADO_FINAL: "En Almacén"
-
     });
 
     await recargarSistema();
-
 }
