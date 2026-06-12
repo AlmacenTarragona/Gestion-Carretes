@@ -305,12 +305,12 @@ async function guardarEdicion(id) {
 
 }
 /**
- * HISTORIAL - Versión Definitiva con Búsqueda Cruzada por Lote
+ * HISTORIAL - Versión con Reintento Automático por Lote ante fallos de Base de Datos
  */
 async function verHistorial(id) {
-    console.log(`%c=== INICIANDO FILTRADO EXCLUSIVO ===`, 'background: #0f172a; color: #38bdf8; padding: 4px; font-weight: bold;');
+    console.log(`%c=== INICIANDO FILTRADO EXCLUSIVO (ID recibido: ${id}) ===`, 'background: #0f172a; color: #38bdf8; padding: 4px; font-weight: bold;');
     
-    // 1. Localizar el carrete maestro en la tabla actual para extraer sus propiedades reales
+    // 1. Localizar el carrete maestro en la tabla actual
     const carreteOriginal = datos.find(x => 
         String(x["NUMERO REGISTRO"]).trim() === String(id).trim()
     );
@@ -323,18 +323,25 @@ async function verHistorial(id) {
     const loteReal = String(carreteOriginal.LOTE).trim();
     const metrosTotalesCarrete = Number(carreteOriginal.METROS || 0);
     
-    console.log(`Carrete Maestro Identificado -> Lote: "${loteReal}" | Metros Iniciales: ${metrosTotalesCarrete}`);
+    console.log(`Carrete Maestro -> Lote a buscar: "${loteReal}" | Metros Origen: ${metrosTotalesCarrete}`);
 
-    // CORRECCIÓN CRÍTICA: Enviamos el LOTE o solicitamos el paquete de datos pasando el loteReal si tu función lo soporta,
-    // o llamamos a obtenerHistorial asegurando que filtre o barra la hoja por completo.
-    const todosLosMovimientos = await obtenerHistorial(id) || [];
-    
-    // Hacemos un filtrado tolerante a mayúsculas, minúsculas y espacios en blanco ocultos
+    // 2. Intento de llamada estándar al servidor usando el ID
+    let todosLosMovimientos = await obtenerHistorial(id) || [];
+    console.log(`[Intento 1 - Por ID] Movimientos devuelvos por el servidor: ${todosLosMovimientos.length}`);
+
+    // Si el servidor devolvió 0 debido al bug de la columna ID del Excel, hacemos un reintento enviando el Lote de texto
+    if (todosLosMovimientos.length === 0) {
+        console.warn(`¡Alerta! El servidor devolvió 0 filas para el ID ${id}. Ejecutando Reintento por cadena de Lote...`);
+        todosLosMovimientos = await obtenerHistorial(loteReal) || [];
+        console.log(`[Intento 2 - Por Texto Lote] Movimientos devueltos: ${todosLosMovimientos.length}`);
+    }
+
+    // 3. Filtrado de seguridad en el cliente para limpiar residuos de otros lotes
     const movimientos = todosLosMovimientos.filter(m => 
         m.LOTE && String(m.LOTE).trim().toUpperCase() === loteReal.toUpperCase()
     );
 
-    console.log(`Movimientos recuperados del servidor: ${todosLosMovimientos.length} | Coincidentes estrictos con el lote: ${movimientos.length}`);
+    console.log(`Movimientos finales válidos para renderizar: ${movimientos.length}`);
 
     let rows = "";
 
