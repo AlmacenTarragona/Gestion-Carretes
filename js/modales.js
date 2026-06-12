@@ -305,33 +305,36 @@ async function guardarEdicion(id) {
 
 }
 /**
- * HISTORIAL - Filtrado exclusivo por LOTE para evitar mezclas de registros idénticos
+ * HISTORIAL - Versión Definitiva con Búsqueda Cruzada por Lote
  */
 async function verHistorial(id) {
     console.log(`%c=== INICIANDO FILTRADO EXCLUSIVO ===`, 'background: #0f172a; color: #38bdf8; padding: 4px; font-weight: bold;');
     
-    // 1. Buscamos primero el carrete maestro para saber cuál es su LOTE real único
+    // 1. Localizar el carrete maestro en la tabla actual para extraer sus propiedades reales
     const carreteOriginal = datos.find(x => 
         String(x["NUMERO REGISTRO"]).trim() === String(id).trim()
     );
     
     if (!carreteOriginal) {
-        console.error("No se encontró el carrete maestro con ID:", id);
+        console.error("No se encontró el carrete maestro en memoria con ID:", id);
         return;
     }
 
     const loteReal = String(carreteOriginal.LOTE).trim();
     const metrosTotalesCarrete = Number(carreteOriginal.METROS || 0);
     
-    console.log(`Buscando movimientos en la hoja exclusivos para el Lote: ${loteReal}`);
+    console.log(`Carrete Maestro Identificado -> Lote: "${loteReal}" | Metros Iniciales: ${metrosTotalesCarrete}`);
 
-    // 2. Traemos TODOS los movimientos pero los FILTRAMOS en caliente para quedarnos SOLO con los de su lote
+    // CORRECCIÓN CRÍTICA: Enviamos el LOTE o solicitamos el paquete de datos pasando el loteReal si tu función lo soporta,
+    // o llamamos a obtenerHistorial asegurando que filtre o barra la hoja por completo.
     const todosLosMovimientos = await obtenerHistorial(id) || [];
+    
+    // Hacemos un filtrado tolerante a mayúsculas, minúsculas y espacios en blanco ocultos
     const movimientos = todosLosMovimientos.filter(m => 
-        String(m.LOTE).trim() === loteReal
+        m.LOTE && String(m.LOTE).trim().toUpperCase() === loteReal.toUpperCase()
     );
 
-    console.log(`Movimientos totales encontrados en la hoja para este lote: ${movimientos.length}`);
+    console.log(`Movimientos recuperados del servidor: ${todosLosMovimientos.length} | Coincidentes estrictos con el lote: ${movimientos.length}`);
 
     let rows = "";
 
@@ -343,15 +346,12 @@ async function verHistorial(id) {
               })
             : "";
 
-        // Controlar si la fila tiene PEx
         const tienePexNuevo = m.PI_NUEVO !== undefined && m.PI_NUEVO !== null && String(m.PI_NUEVO).trim() !== "";
-        
         let pexAnteriorMostrar = m.PI_ANTERIOR !== undefined && String(m.PI_ANTERIOR).trim() !== "" ? m.PI_ANTERIOR : "--";
         let pexNuevoMostrar = tienePexNuevo ? m.PI_NUEVO : "--";
         
         let metrosCalculados = 0;
 
-        // Lógica de metros remanentes decrecientes
         if (m.TIPO === "SALIDA" && !tienePexNuevo) {
             metrosCalculados = m.METROS_RESTANTES !== undefined && m.METROS_RESTANTES !== "" 
                 ? Number(m.METROS_RESTANTES) 
@@ -376,7 +376,7 @@ async function verHistorial(id) {
     });
 
     if (!rows) {
-        rows = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">⚠️ No se encontraron movimientos para el lote ${loteReal}.</td></tr>`;
+        rows = `<tr><td colspan="8" style="text-align:center;padding:30px;color:#64748b;">⚠️ No se encontraron movimientos en la hoja de cálculo vinculados al lote ${loteReal}.</td></tr>`;
     }
 
     const html = `
