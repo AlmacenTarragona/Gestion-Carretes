@@ -87,16 +87,17 @@ function renderTabla() {
 
         // Fila de renderizado manteniendo .PI original para backend, pero visualmente adaptable
         html += `
-            <tr class="${claseFila}">
-                <td>${item.LOTE || ""}</td>
-                <td>${item.PRODUCTO || ""}</td>
-                <td>${item.DESCRIPCION || ""}</td>
-                <td>${item.METROS || ""}</td>
-                <td>${item.PI || ""}</td>
-                <td>${badge}</td>
-                <td>${acciones}</td>
-            </tr>
-        `;
+    <tr class="${claseFila}">
+        <td>${item.LOTE || ""}</td>
+        <td>${item["000UBI."] || ""}</td>
+        <td>${item.PRODUCTO || ""}</td>
+        <td>${item.DESCRIPCION || ""}</td>
+        <td>${item.METROS || ""}</td>
+        <td>${item.PI || ""}</td>
+        <td>${badge}</td>
+        <td>${acciones}</td>
+    </tr>
+`;
     });
 
     tbody.innerHTML = html;
