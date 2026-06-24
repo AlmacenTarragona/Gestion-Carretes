@@ -175,18 +175,79 @@ function verCarrete(id) {
             Number(x["NUMERO REGISTRO"]) === Number(id)
         );
 
-    const html = `
-        <h2>Detalle Carrete</h2>
+    if (!item) {
 
-        <pre style="background:#f1f5f9;padding:15px;border-radius:10px;">
-${JSON.stringify(item, null, 2)}
-        </pre>
+        alert("Carrete no encontrado");
+
+        return;
+
+    }
+
+    const html = `
+        <h2>👁️ Detalle Carrete</h2>
+
+        <div class="modal-grid">
+
+            <div>
+                <label>LOTE</label>
+                <input value="${item.LOTE || ""}" readonly>
+            </div>
+
+            <div>
+                <label>UBICACIÓN</label>
+                <input value="${item["000UBI."] || ""}" readonly>
+            </div>
+
+            <div>
+                <label>OPE</label>
+                <input value="${item["OPE."] || ""}" readonly>
+            </div>
+
+            <div>
+                <label>PRODUCTO</label>
+                <input value="${item.PRODUCTO || ""}" readonly>
+            </div>
+
+            <div>
+                <label>DESCRIPCIÓN</label>
+                <input value="${item.DESCRIPCION || ""}" readonly>
+            </div>
+
+            <div>
+                <label>METROS</label>
+                <input value="${item.METROS || 0}" readonly>
+            </div>
+
+            <div>
+                <label>PI</label>
+                <input value="${item.PI || 0}" readonly>
+            </div>
+
+            <div>
+                <label>PE</label>
+                <input value="${item.PE || 0}" readonly>
+            </div>
+
+            <div>
+                <label>ESTADO</label>
+                <input value="${item.Estado || ""}" readonly>
+            </div>
+
+            <div style="grid-column:1 / -1;">
+                <label>OBSERVACIONES</label>
+                <textarea readonly>${item.OBSERVACIONES || ""}</textarea>
+            </div>
+
+        </div>
 
         <div class="modal-footer">
 
-            <button class="btn btn-primary"
+            <button
+                class="btn btn-primary"
                 onclick="cerrarModal()">
+
                 Cerrar
+
             </button>
 
         </div>
@@ -195,7 +256,6 @@ ${JSON.stringify(item, null, 2)}
     abrirModal(html);
 
 }
-
 
 /**
  * EDITAR CARRETE
